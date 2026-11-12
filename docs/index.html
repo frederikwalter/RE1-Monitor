@@ -63,6 +63,7 @@ table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
 th { color: var(--text-2); font-weight: 500; font-size: 13px; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag + .tag { margin-left: 6px; }
 .tag { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--text-2); }
 .empty { color: var(--text-3); padding: 12px 0; }
 #error { border-color: var(--critical); }
@@ -72,7 +73,7 @@ a { color: inherit; }
 <body>
 <main>
 	<h1>RE1-Monitor</h1>
-	<p class="lead">Wann streicht die DB die Halte des RE1 in Roth und Nürnberg Hbf? Die Seite wertet aus, wie lange vor der planmäßigen Abfahrt eine Streichung im Fahrplan sichtbar wurde.</p>
+	<p class="lead">Wann streicht die DB die Halte des RE1 in Roth und Nürnberg Hbf? Die Seite wertet aus, wie lange vor der planmäßigen Abfahrt die DB eine Streichung in ihrem System angelegt hat.</p>
 	<div class="status" id="status">Daten werden geladen …</div>
 
 	<section id="error" hidden></section>
@@ -82,24 +83,20 @@ a { color: inherit; }
 
 		<section>
 			<h2>Wie lange vor der Sollzeit wurde gestrichen?</h2>
-			<p class="note">Halte, die beim ersten Abruf im Fahrplan standen und später gestrichen wurden. Der Zeitpunkt ist der erste Abruf, bei dem die Streichung sichtbar war; die Genauigkeit entspricht dem Abfrageintervall von einer Stunde.</p>
+			<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der Timetables-API), und der planmäßigen Abfahrt am Halt.</p>
 			<div class="bars" id="histogram"></div>
 		</section>
 
 		<section>
 			<h2>Einzelne Streichungen</h2>
 			<div class="filters">
-				<label>Halt <select id="f-halt"></select></label>
+				<label>Bahnhof <select id="f-halt"></select></label>
 				<label>Betriebstag <select id="f-day"></select></label>
 			</div>
 			<div class="scroll"><table id="cancellations"></table></div>
+			<p class="note" id="footnote" hidden>* Die DB hat keinen Anlagezeitpunkt geliefert; angegeben ist der erste Abruf, bei dem die Streichung sichtbar war.</p>
 		</section>
 
-		<section id="iris-section" hidden>
-			<h2>Offizieller Streichungszeitpunkt (IRIS)</h2>
-			<p class="note">Zeitpunkt, zu dem die DB die Streichung in ihrem System angelegt hat (Feld <code>clt</code> der Timetables-API). Er hängt nicht vom Abfrageintervall ab.</p>
-			<div class="scroll"><table id="iris"></table></div>
-		</section>
 	</div>
 </main>
 
@@ -164,7 +161,7 @@ const renderStatus = (runs, events) => {
 		const errors = Number(last.errors);
 		const state = ageH > 3 ? ['var(--critical)', 'Sammler steht seit'] : errors ? ['var(--warning)', 'Letzter Lauf mit Fehlern:'] : ['var(--good)', 'Letzter Lauf:'];
 		node.append(el('span', {}, el('span', {class: 'dot', style: `background:${state[0]}`}), `${state[1]} ${fmtTime(last.run_at)} Uhr`));
-		node.append(el('span', {}, `${last.trips} Fahrten geprüft, ${errors} Fehler`));
+		node.append(el('span', {}, `${last.halts} anstehende Halte geprüft, ${errors} Fehler`));
 		node.append(el('span', {}, `${runs.length} Läufe seit ${fmtTime(runs[0].run_at)}`));
 	} else if (events.length) {
 		node.append(el('span', {}, `Stand: ${fmtTime(events.at(-1).detected_at)} Uhr`));
@@ -172,61 +169,53 @@ const renderStatus = (runs, events) => {
 };
 
 const render = (rep) => {
-	const n = rep.cancelledLater.length;
+	const n = rep.cancelled.length;
 	const tile = (label, value, sub) => el('div', {class: 'tile'},
 		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
 	$('tiles').replaceChildren(
-		tile('Beobachtete Fahrten', rep.trips, `Halte: ${rep.halts.join(', ') || '–'}`),
-		tile('Halte im Fahrplan', rep.planned, 'beim ersten Abruf als Halt geführt'),
-		tile('davon später gestrichen', n, `${pct(n, rep.planned)} der Halte im Fahrplan`),
+		tile('Beobachtete Halte', rep.halts, rep.stations.join(', ') || '–'),
+		tile('davon gestrichen', n, `${pct(n, rep.halts)} der Halte`),
 		tile('erst am Fahrtag gestrichen', rep.sameDay, `${pct(rep.sameDay, n)} der Streichungen`),
+		tile('Mittlerer Vorlauf', n ? fmtLead(rep.medianLeadH).replace(/ (vorher|danach)$/, '') : '–',
+			n ? `Median, ${rep.medianLeadH < 0 ? 'nach' : 'vor'} der Sollzeit` : 'noch keine Streichung'),
 	);
 
 	const max = Math.max(1, ...rep.histogram.map(b => b.count));
-	$('histogram').replaceChildren(...rep.histogram.flatMap(b => [
+	$('histogram').replaceChildren(...rep.histogram.map(b =>
 		el('div', {class: 'row', title: `${b.label}: ${b.count} Streichungen (${pct(b.count, n)})`},
 			el('div', {class: 'name'}, b.label),
 			el('div', {class: 'track'}, el('div', {class: 'fill', style: `width:${b.count / max * 100}%`})),
-			el('div', {class: 'num'}, `${b.count}`)),
-	]));
+			el('div', {class: 'num'}, `${b.count}`))));
 
-	// Filter
-	const days = [...new Set(rep.cancelledLater.map(r => r.serviceDate))].sort().reverse();
+	const days = [...new Set(rep.cancelled.map(r => r.serviceDate))].sort().reverse();
 	const fill = (sel, all, opts) => sel.replaceChildren(el('option', {value: ''}, all), ...opts.map(([v, t]) => el('option', {value: v}, t)));
-	fill($('f-halt'), 'alle', rep.halts.map(h => [h, h]));
+	fill($('f-halt'), 'alle', rep.stations.map(h => [h, h]));
 	fill($('f-day'), 'alle', days.map(d => [d, fmtDay(d)]));
 	const renderRows = () => {
-		const halt = $('f-halt').value, day = $('f-day').value;
-		const rows = rep.cancelledLater
-			.filter(r => (!halt || r.halt === halt) && (!day || r.serviceDate === day))
+		const station = $('f-halt').value, day = $('f-day').value;
+		const rows = rep.cancelled
+			.filter(r => (!station || r.station === station) && (!day || r.serviceDate === day))
 			.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
 		table($('cancellations'),
-			[['Zug'], ['Richtung'], ['Halt'], ['Sollzeit'], ['Im Fahrplan seit'], ['Streichung erkannt'], ['Vorlauf', 'num'], ['']],
+			[['Zug'], ['Richtung'], ['Bahnhof'], ['Sollzeit'], ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
 			rows.map(r => [
-				r.train, dirLabel[r.direction] || '', r.halt, fmtTime(r.plannedTime), fmtTime(r.firstSeen),
-				fmtTime(r.cancelDetected), fmtLead(r.cancelLeadH),
-				r.restored ? el('span', {class: 'tag'}, 'später wiederhergestellt')
-					: r.sameDay ? el('span', {class: 'tag'}, 'am Fahrtag') : '',
+				r.train, dirLabel[r.direction] || '', r.station, fmtTime(r.plannedTime),
+				fmtTime(r.createdAt) + (r.exact ? '' : ' *'), fmtLead(r.leadH),
+				el('span', {}, ...[r.sameDay && 'am Fahrtag', r.restored && 'später wiederhergestellt']
+					.filter(Boolean).map(t => el('span', {class: 'tag'}, t))),
 			]),
-			rep.cancelledLater.length ? 'Keine Streichung für diese Auswahl.' : 'Bisher wurde keine nachträgliche Streichung erkannt.');
+			n ? 'Keine Streichung für diese Auswahl.' : 'Bisher wurde keine Streichung erkannt.');
+		$('footnote').hidden = !rows.some(r => !r.exact);
 	};
 	$('f-halt').onchange = $('f-day').onchange = renderRows;
 	renderRows();
-
-	if (rep.iris.length) {
-		$('iris-section').hidden = false;
-		table($('iris'),
-			[['Zug'], ['Bahnhof'], ['Sollzeit'], ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
-			rep.iris.map(r => [r.train, r.station, fmtTime(r.plannedTime), fmtTime(r.createdAt), fmtLead(r.leadH),
-				r.sameDay ? el('span', {class: 'tag'}, 'am Fahrtag') : '']), '');
-	}
 	$('content').hidden = false;
 };
 
 try {
-	const [events, iris, runs] = await Promise.all([load('events.csv', true), load('iris_events.csv'), load('runs.csv')]);
+	const [events, runs] = await Promise.all([load('events.csv', true), load('runs.csv')]);
 	renderStatus(runs, events);
-	render(buildReport(events, iris));
+	render(buildReport(events));
 } catch (err) {
 	$('status').textContent = '';
 	const box = $('error');

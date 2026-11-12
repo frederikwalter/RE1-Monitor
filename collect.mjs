@@ -1,365 +1,211 @@
 #!/usr/bin/env node
-// RE1-Monitor – Sammler (bahn.de / DB Navigator über db-vendo-client, ohne API-Key)
+// RE1-Monitor – Sammler über die offizielle "Timetables"-API (IRIS) aus dem DB API Marketplace
+// (kostenloser Zugang, Client-ID + API-Key nötig).
 //
-// Die Schnittstelle kennt keine Suche nach Zugnummer. Ein Lauf hat deshalb zwei Phasen:
-//   1. Entdecken: Abfahrts- und Ankunftstafel am Ankerbahnhof (Treuchtlingen), aber nur für
-//      Stundenfenster, die noch nie oder vor mehr als `rescanHours` abgefragt wurden.
-//   2. Direktabruf: Jede bereits bekannte Fahrt wird über ihre Fahrt-ID geladen, ohne Tafel.
-//      Ist die ID ungültig geworden, wird das Stundenfenster der Fahrt neu abgefragt.
-// Der Laufweg jeder Fahrt wird mit dem letzten gespeicherten Stand verglichen; jede Änderung
-// landet mit Zeitstempel in data/events.csv.
+// Die API kennt nur Bahnhöfe. Ein Lauf lädt deshalb für jeden beobachteten Bahnhof
+//   1. den Sollfahrplan der nächsten Stunden (/plan, jede Stundenscheibe nur einmal) und
+//   2. alle bekannten Änderungen (/fchg),
+// filtert die Halte der Linie RE1 heraus und vergleicht ihren Status mit dem letzten Lauf.
+// Für jede Streichung liefert IRIS das Feld "clt" = Zeitpunkt, zu dem die DB sie angelegt hat.
 //
-// Aufruf:  node collect.mjs [--horizon 72] [--dry-run]
+// Aufruf:  DB_CLIENT_ID=... DB_API_KEY=... node collect.mjs
+import fs from 'node:fs';
 import path from 'node:path';
+import {XMLParser} from 'fast-xml-parser';
 import {
-	DATA, loadConfig, readJson, writeJson, appendCsv, appendJsonl, sleep, withRetry,
-	berlin, berlinDate, hoursBetween, normName, isMain,
+	ROOT, DATA, loadConfig, readJson, writeJson, appendCsv, appendJsonl, sleep, withRetry,
+	berlin, berlinDate, hoursBetween, isMain,
 } from './lib.mjs';
 
 export const EVENT_HEADER = [
-	'detected_at', 'trip_key', 'train', 'service_date', 'direction', 'event', 'stop', 'watch_stop',
-	'old_value', 'new_value', 'stop_planned_time', 'lead_time_h', 'detail',
+	'detected_at', 'station', 'train', 'stop_id', 'direction', 'planned_time', 'event',
+	'old_status', 'new_status', 'cancellation_created_at', 'lead_time_h', 'lead_time_detected_h',
+	'planned_path', 'changed_path',
 ];
-export const RUN_HEADER = ['run_at', 'horizon_h', 'trips', 'events', 'errors', 'board_requests', 'trip_requests'];
+export const RUN_HEADER = ['run_at', 'halts', 'events', 'errors', 'requests'];
 
 const HOUR = 36e5;
+const KEEP_MS = 3 * 24 * HOUR; // Soll-Daten und Zustand 3 Tage aufbewahren
 
-// ---------- Normalisierung ----------
+const xml = new XMLParser({
+	ignoreAttributes: false, attributeNamePrefix: '', parseAttributeValue: false,
+	isArray: (name) => ['s', 'm', 'station'].includes(name),
+});
 
-const stopTime = (s) => s.plannedDeparture || s.plannedArrival || null;
-
-export const isWatch = (name, cfg) => {
-	const n = normName(name);
-	return cfg.watchStations.some(w => {
-		const ww = normName(w);
-		return n === ww || n.startsWith(ww + '(') || n.startsWith(ww + ' (');
-	});
+// IRIS-Zeitformat YYMMddHHmm (Ortszeit Berlin) → ISO mit korrektem Offset
+export const irisTime = (s) => {
+	if (!s || s.length < 10) return null;
+	const local = `20${s.slice(0, 2)}-${s.slice(2, 4)}-${s.slice(4, 6)}T${s.slice(6, 8)}:${s.slice(8, 10)}:00`;
+	for (const off of ['+01:00', '+02:00']) {
+		const d = new Date(local + off);
+		if (berlin(d).slice(0, 16) === local.slice(0, 16)) return d.toISOString();
+	}
+	return new Date(local + '+01:00').toISOString();
 };
 
-const remarkTexts = (list, prefix = '') => (list || [])
-	.map(r => (r.text || r.summary || '').trim())
-	.filter(Boolean)
-	.map(t => prefix + t);
+const slim = (e) => e && {pt: e.pt, l: e.l, ppth: e.ppth, ps: e.ps};
+const KINDS = ['ar', 'dp'];
 
-export const normalizeTrip = (trip, cfg) => {
-	const stops = (trip.stopovers || []).map(s => ({
-		name: s.stop?.name || '?',
-		id: s.stop?.id || null,
-		plannedArrival: s.plannedArrival || null,
-		plannedDeparture: s.plannedDeparture || null,
-		cancelled: Boolean(s.cancelled),
-	}));
-	if (!stops.length) return null;
-
-	// Richtung: liegt ein südlicher Halt vor einem nördlichen, fährt der Zug nach Norden.
-	const firstIdx = (re) => stops.findIndex(s => new RegExp(re, 'i').test(s.name));
-	const south = firstIdx(cfg.southRegex);
-	const north = firstIdx(cfg.northRegex);
-	const anchorIdx = stops.findIndex(s => cfg.anchorStations.some(a => normName(a) === normName(s.name)));
-	let direction = '?';
-	if (south >= 0 && north >= 0) direction = south < north ? 'N' : 'S';
-	else if (anchorIdx >= 0 && south >= 0) direction = south < anchorIdx ? 'N' : 'S';
-	else if (anchorIdx >= 0 && north >= 0) direction = north > anchorIdx ? 'N' : 'S';
-
-	// Bezugszeit: Sollzeit am Ankerbahnhof, sonst am ersten Halt
-	const ref = stops[anchorIdx >= 0 ? anchorIdx : 0];
-	const refPlanned = stopTime(ref);
-	const serviceDate = berlinDate(stopTime(stops[0]) || refPlanned);
-
-	// Schlüssel: Betriebstag + Zugnummer. Manche Antworten liefern statt der Zugnummer nur
-	// die Ziffern der Linie ("1"); dann greift Sollzeit am Anker + Richtung.
-	const train = trip.line?.name || '';
-	const fahrtNr = String(trip.line?.fahrtNr || '');
-	const hasNr = fahrtNr && fahrtNr !== train.replace(/\D/g, '');
-	const key = hasNr
-		? `${serviceDate}_${fahrtNr}`
-		: `${berlin(refPlanned).slice(0, 16).replace(':', '')}_${direction}`;
-
-	const remarks = [
-		...remarkTexts(trip.remarks),
-		...(trip.stopovers || []).flatMap(s => remarkTexts(s.remarks, `[${s.stop?.name}] `)),
-	];
-
-	return {
-		key,
-		tripId: trip.id,
-		train: hasNr ? `${train} (${fahrtNr})` : train,
-		fahrtNr: hasNr ? fahrtNr : '',
-		direction,
-		serviceDate,
-		anchor: {name: ref.name, planned: refPlanned},
-		origin: stops[0].name,
-		destination: stops[stops.length - 1].name,
-		cancelled: Boolean(trip.cancelled),
-		stops,
-		remarks: [...new Set(remarks)].sort(),
-	};
+// Status eines Halts aus Soll (p) und Änderung (c). Ein Halt gilt als gestrichen,
+// wenn Ankunft und Abfahrt (soweit vorhanden) beide gestrichen sind.
+export const haltStatus = (p, c) => {
+	const kinds = KINDS.filter(k => p[k] || c[k]);
+	const cs = (k) => c[k]?.cs || p[k]?.ps;
+	const cancelled = kinds.filter(k => cs(k) === 'c');
+	const status = cancelled.length === kinds.length ? 'gestrichen'
+		: cancelled.length ? 'teilweise gestrichen'
+		: kinds.some(k => cs(k) === 'a') ? 'zusätzlich' : 'planmäßig';
+	const clt = cancelled.map(k => c[k]?.clt).filter(Boolean).sort()[0] || '';
+	return {status, clt, path: c.dp?.cpth || c.ar?.cpth || ''};
 };
 
-// ---------- Vergleich zweier Stände ----------
-
-const stopSummary = (st, cfg) => st.stops
-	.filter(s => isWatch(s.name, cfg))
-	.map(s => `${s.name}:${s.cancelled ? 'entfällt' : 'Halt'}`)
-	.join('; ') || 'kein Beobachtungshalt im Laufweg';
-
-export const diffStates = (prev, cur, cfg, now) => {
-	const ev = [];
-	const base = (event, extra = {}) => ({
-		detected_at: berlin(now), trip_key: cur.key, train: cur.train, service_date: cur.serviceDate,
-		direction: cur.direction, event, ...extra,
-	});
-	const withStop = (event, s, old_value, new_value, detail = '') => base(event, {
-		stop: s.name, watch_stop: isWatch(s.name, cfg) ? 'ja' : '', old_value, new_value,
-		stop_planned_time: berlin(stopTime(s)), lead_time_h: hoursBetween(now, stopTime(s)), detail,
-	});
-
-	if (!prev) {
-		ev.push(base('FAHRT_ERSTMALS_GESEHEN', {
-			old_value: '', new_value: stopSummary(cur, cfg),
-			stop_planned_time: berlin(cur.anchor.planned), lead_time_h: hoursBetween(now, cur.anchor.planned),
-			detail: `${cur.origin} → ${cur.destination}; ${cur.stops.length} Halte`,
-		}));
-		// Halte, die schon beim ersten Sehen als "entfällt" markiert sind
-		for (const s of cur.stops) if (s.cancelled) ev.push(withStop('HALT_BEREITS_GESTRICHEN', s, '', 'entfällt'));
-		return ev;
-	}
-
-	if (prev.missing) {
-		ev.push(base('FAHRT_WIEDER_AUFGETAUCHT', {
-			stop_planned_time: berlin(cur.anchor.planned), lead_time_h: hoursBetween(now, cur.anchor.planned),
-		}));
-	}
-
-	const pMap = new Map(prev.stops.map(s => [normName(s.name), s]));
-	const cMap = new Map(cur.stops.map(s => [normName(s.name), s]));
-
-	for (const [k, s] of cMap) {
-		const p = pMap.get(k);
-		if (!p) { ev.push(withStop('HALT_HINZUGEFUEGT', s, '', s.cancelled ? 'entfällt' : 'Halt')); continue; }
-		if (!p.cancelled && s.cancelled) ev.push(withStop('HALT_GESTRICHEN', s, 'Halt', 'entfällt'));
-		if (p.cancelled && !s.cancelled) ev.push(withStop('HALT_WIEDERHERGESTELLT', s, 'entfällt', 'Halt'));
-		if (p.plannedArrival !== s.plannedArrival || p.plannedDeparture !== s.plannedDeparture) {
-			ev.push(withStop('SOLLZEIT_GEAENDERT', s,
-				`${berlin(p.plannedArrival).slice(11, 16)}/${berlin(p.plannedDeparture).slice(11, 16)}`,
-				`${berlin(s.plannedArrival).slice(11, 16)}/${berlin(s.plannedDeparture).slice(11, 16)}`));
-		}
-	}
-	for (const [k, p] of pMap) {
-		if (!cMap.has(k)) ev.push(withStop('HALT_AUS_LAUFWEG_ENTFERNT', p, p.cancelled ? 'entfällt' : 'Halt', ''));
-	}
-
-	if (!prev.cancelled && cur.cancelled) ev.push(base('FAHRT_GESTRICHEN', {old_value: 'fährt', new_value: 'fällt aus'}));
-	if (prev.cancelled && !cur.cancelled) ev.push(base('FAHRT_WIEDER_AKTIV', {old_value: 'fällt aus', new_value: 'fährt'}));
-	if (prev.destination !== cur.destination || prev.origin !== cur.origin) {
-		ev.push(base('START_ZIEL_GEAENDERT', {
-			old_value: `${prev.origin} → ${prev.destination}`, new_value: `${cur.origin} → ${cur.destination}`,
-		}));
-	}
-
-	const pr = new Set(prev.remarks || []);
-	const cr = new Set(cur.remarks || []);
-	for (const r of cr) if (!pr.has(r)) ev.push(base('HINWEIS_NEU', {new_value: r}));
-	for (const r of pr) if (!cr.has(r)) ev.push(base('HINWEIS_ENTFERNT', {old_value: r}));
-
-	return ev;
+const EVENT_FOR = {
+	'gestrichen': 'HALT_GESTRICHEN',
+	'teilweise gestrichen': 'HALT_TEILWEISE_GESTRICHEN',
+	'planmäßig': 'HALT_WIEDERHERGESTELLT',
 };
 
-// ---------- API-Zugriff ----------
-
-const resolveStations = async (client, cfg, delay) => {
-	const cacheFile = path.join(DATA, 'state', 'stations.json');
-	const cache = {...readJson(cacheFile, {}), ...(cfg.stationIds || {})};
-	for (const name of cfg.anchorStations) {
-		if (cache[name]) continue;
-		const res = await withRetry(() => client.locations(name, {results: 3, addresses: false, poi: false}),
-			{label: `Bahnhofssuche ${name}`});
-		const hit = res.find(l => l.type === 'stop' || l.type === 'station');
-		if (!hit) throw new Error(`Bahnhof nicht gefunden: ${name}`);
-		cache[name] = hit.id;
-		console.log(`  Bahnhof ${name} → ${hit.name} (${hit.id})`);
-		writeJson(cacheFile, cache);
-		await sleep(delay);
-	}
-	return cache;
-};
-
-const hourStart = (d) => { const t = new Date(d); t.setMinutes(0, 0, 0); return t; };
-
-export const runCollect = async (client, cfg, {horizonHours, now = new Date(), dryRun = false} = {}) => {
-	const delay = cfg.requestDelayMs ?? 1200;
-	const retries = cfg.maxRetries ?? 3;
-	const lineRe = new RegExp(cfg.lineRegex, 'i');
-	const ids = await resolveStations(client, cfg, delay);
-
-	const start = hourStart(now.getTime() - (cfg.lookbackHours ?? 1) * HOUR);
-	const end = new Date(now.getTime() + horizonHours * HOUR);
-
+export const runCollect = async (fetchXml, cfg, {now = new Date()} = {}) => {
 	const stateDir = path.join(DATA, 'state');
-	const indexFile = path.join(DATA, 'index.json');
-	const windowsFile = path.join(stateDir, 'windows.json');
-	const index = readJson(indexFile, {});     // key -> {tripId, anchorPlanned, train, serviceDate, direction, missing}
-	const windows = readJson(windowsFile, {}); // ISO-Stundenbeginn -> Zeitpunkt der letzten erfolgreichen Abfrage
-
-	const found = new Map();       // tripId -> Linienname (von den Tafeln)
-	const scannedOk = new Set();   // in diesem Lauf erfolgreich abgefragte Fenster
-	const scannedFail = new Set();
-	const linesSeen = {};
-	let errors = 0, boardRequests = 0, boardOk = 0, tripRequests = 0;
-	// Schlagen die ersten Anfragen alle fehl, sperrt die DB vermutlich die IP-Adresse: Lauf abbrechen
-	const blocked = () => !boardOk && errors >= 4;
-
-	const scanWindow = async (t) => {
-		const iso = t.toISOString();
-		if (scannedOk.has(iso) || scannedFail.has(iso)) return;
-		let ok = true;
-		for (const anchor of cfg.anchorStations) {
-			for (const kind of ['departures', 'arrivals']) {
-				boardRequests++;
-				try {
-					const res = await withRetry(() => client[kind](ids[anchor], {
-						when: t, duration: 60, remarks: false, stopovers: false,
-					}), {retries, label: `${kind} ${anchor} ${berlin(t)}`});
-					boardOk++;
-					for (const d of res[kind] || []) {
-						const name = d.line?.name || '';
-						linesSeen[name] = (linesSeen[name] || 0) + 1;
-						if (lineRe.test(name) && d.tripId) found.set(d.tripId, name);
-					}
-				} catch (err) {
-					ok = false; errors++;
-					console.error(`  ✗ ${kind} ${anchor} ${berlin(t)}: ${err.message}`);
-				}
-				await sleep(delay);
-			}
-		}
-		if (ok) { scannedOk.add(iso); windows[iso] = now.toISOString(); } else scannedFail.add(iso);
-	};
-
-	// 1. Entdecken: nur neue oder länger nicht abgefragte Stundenfenster
-	const rescanMs = (cfg.rescanHours ?? 6) * HOUR;
-	for (let t = start; t < end; t = new Date(t.getTime() + HOUR)) {
-		const last = windows[t.toISOString()];
-		if (blocked()) break;
-		if (!last || now - new Date(last) >= rescanMs) await scanWindow(t);
-	}
-	for (const iso of Object.keys(windows)) if (new Date(iso) < start) delete windows[iso];
-
-	const current = new Map(); // key -> normalisierter Stand
-	const fetched = new Set(); // bereits geladene Fahrt-IDs
-	const loadTrip = async (tripId, tries) => {
-		fetched.add(tripId);
-		tripRequests++;
-		try {
-			const {trip} = await withRetry(() => client.trip(tripId, {stopovers: true, remarks: true, polyline: false}),
-				{retries: tries, label: `Fahrt ${tripId.slice(0, 30)}`});
-			return normalizeTrip(trip, cfg);
-		} finally { await sleep(delay); }
-	};
-
-	// 2. Direktabruf aller bekannten, noch anstehenden Fahrten
-	const stale = []; // Schlüssel, deren Fahrt-ID nicht mehr funktioniert
-	for (const [key, meta] of Object.entries(index)) {
-		const planned = new Date(meta.anchorPlanned);
-		if (blocked() || planned < start || planned >= end || meta.missing || !meta.tripId) continue;
-		try {
-			const st = await loadTrip(meta.tripId, Math.min(retries, 1));
-			if (st) current.set(st.key, st); else stale.push(key);
-		} catch (err) {
-			stale.push(key);
-			console.error(`  ! Direktabruf ${key} fehlgeschlagen (${err.message}), Tafel wird neu abgefragt`);
-		}
-	}
-	for (const key of stale) await scanWindow(hourStart(index[key].anchorPlanned));
-
-	// 3. Laufwege der auf den Tafeln neu gefundenen Fahrten
-	for (const tripId of found.keys()) {
-		if (fetched.has(tripId)) continue;
-		try {
-			const st = await loadTrip(tripId, retries);
-			if (st) current.set(st.key, st);
-		} catch (err) {
-			errors++;
-			console.error(`  ✗ Fahrt ${tripId.slice(0, 40)}…: ${err.message}`);
-		}
-	}
-	console.log(`  ${boardRequests} Tafel-Anfragen, ${tripRequests} Fahrt-Anfragen, ${current.size} RE1-Fahrten`);
-
-	// 4. Mit gespeichertem Stand vergleichen
+	const stationsFile = path.join(stateDir, 'stations.json');
+	const evas = {...readJson(stationsFile, {}), ...(cfg.stationIds || {})};
+	const pathRe = new RegExp(cfg.pathRegex, 'i');
+	const cutoff = new Date(now.getTime() - KEEP_MS);
 	const events = [];
-	for (const [key, st] of current) {
-		const prevFile = path.join(stateDir, 'trips', `${key}.json`);
-		const prev = readJson(prevFile);
-		if (prev && index[key]?.missing) prev.missing = true;
-		const evs = diffStates(prev, st, cfg, now);
-		events.push(...evs);
-		// Stand und Schnappschuss nur schreiben, wenn sich etwas geändert hat
-		if (!dryRun && (evs.length || prev?.tripId !== st.tripId)) {
-			writeJson(prevFile, {...st, firstSeen: prev?.firstSeen || berlin(now), lastChange: berlin(now)});
-			if (evs.length) appendJsonl(path.join(DATA, 'snapshots', `${berlinDate(now)}.jsonl`), {run_at: berlin(now), ...st});
+	let errors = 0, requests = 0, halts = 0;
+	const get = async (p) => { requests++; return xml.parse(await fetchXml(p)); };
+
+	// gehört der Halt zur beobachteten Linie? Der Laufweg muss zusätzlich über die Strecke führen,
+	// damit eine gleichnamige Linie anderswo nicht mitgezählt wird.
+	const isLine = (tl, ar, dp) => cfg.categories.includes(tl?.c) && (ar?.l || dp?.l) === cfg.line
+		&& pathRe.test(`${ar?.ppth || ''}|${dp?.ppth || ''}`);
+
+	for (const name of cfg.stations) {
+		if (!evas[name]) {
+			try {
+				const list = (await get(`/station/${encodeURIComponent(name)}`)).stations?.station || [];
+				const hit = list.find(s => s.name === name) || list[0];
+				if (!hit) throw new Error('nicht gefunden');
+				evas[name] = hit.eva;
+				console.log(`  Station ${name} → ${hit.name} (EVA ${hit.eva})`);
+				writeJson(stationsFile, evas);
+			} catch (err) { errors++; console.error(`  ✗ Station ${name}: ${err.message}`); continue; }
 		}
-		index[key] = {
-			tripId: st.tripId, anchorPlanned: st.anchor.planned, train: st.train,
-			serviceDate: st.serviceDate, direction: st.direction, missing: false,
-		};
+		const eva = evas[name];
+
+		// Soll-Daten: eine Stundenscheibe ändert sich nach Veröffentlichung nicht, sie wird nur einmal
+		// geladen. Leere Scheiben gelten als noch nicht veröffentlicht und werden erneut versucht.
+		const planFile = path.join(stateDir, `plan_${eva}.json`);
+		const plan = readJson(planFile, {slices: {}, stops: {}});
+		const seenLines = {};
+		let farthest = 0;
+		for (let h = 0; h <= cfg.planHoursAhead; h++) {
+			const b = berlin(new Date(now.getTime() + h * HOUR));
+			const ymd = b.slice(2, 4) + b.slice(5, 7) + b.slice(8, 10);
+			const hh = b.slice(11, 13);
+			if (plan.slices[ymd + hh]) { farthest = h; continue; }
+			try {
+				const stops = (await get(`/plan/${eva}/${ymd}/${hh}`)).timetable?.s || [];
+				for (const s of stops) {
+					const combo = `${s.tl?.c || '?'} ${s.ar?.l || s.dp?.l || ''}`;
+					seenLines[combo] = (seenLines[combo] || 0) + 1;
+					if (isLine(s.tl, s.ar, s.dp)) plan.stops[s.id] = {tl: {c: s.tl.c, n: s.tl.n}, ar: slim(s.ar), dp: slim(s.dp)};
+				}
+				if (stops.length) { plan.slices[ymd + hh] = true; farthest = h; }
+			} catch (err) { errors++; console.error(`  ✗ plan ${name} ${ymd} ${hh}: ${err.message}`); }
+		}
+		for (const k of Object.keys(plan.slices)) if (new Date(irisTime(k + '00')) < cutoff) delete plan.slices[k];
+		for (const [id, s] of Object.entries(plan.stops)) {
+			if (new Date(irisTime(s.dp?.pt || s.ar?.pt)) < cutoff) delete plan.stops[id];
+		}
+		writeJson(planFile, plan);
+		const lineHalts = Object.keys(plan.stops).length;
+		console.log(`  ${name}: Sollfahrplan bis +${farthest} h, ${lineHalts} Halte der Linie`);
+		if (Object.keys(seenLines).length && !lineHalts) {
+			console.error(`  ! ${name}: kein Halt mit Gattung ${cfg.categories.join("/")} und Linie "${cfg.line}". Gesehen: ${Object.keys(seenLines).sort().join(', ')}`);
+		}
+
+		// Ist-Daten: alle bekannten Änderungen des Bahnhofs
+		let changes;
+		try {
+			changes = new Map(((await get(`/fchg/${eva}`)).timetable?.s || []).map(s => [s.id, s]));
+		} catch (err) { errors++; console.error(`  ✗ fchg ${name}: ${err.message}`); continue; }
+
+		const stateFile = path.join(stateDir, `halts_${eva}.json`);
+		const state = readJson(stateFile, {});
+
+		for (const [id, p] of Object.entries(plan.stops)) {
+			const plannedTime = irisTime(p.dp?.pt || p.ar?.pt);
+			// vergangene Halte bleiben auf ihrem letzten Stand: IRIS entfernt alte Änderungen wieder
+			if (new Date(plannedTime) < now) continue;
+			halts++;
+			const c = changes.get(id) || {};
+			const cur = haltStatus(p, c);
+			const prev = state[id];
+			const event = !prev ? 'ERSTMALS_GESEHEN'
+				: prev.status !== cur.status ? (EVENT_FOR[cur.status] || 'STATUS_GEAENDERT')
+				: prev.path !== cur.path && cur.path ? 'LAUFWEG_GEAENDERT' : null;
+			if (event) {
+				const created = irisTime(cur.clt);
+				events.push({
+					detected_at: berlin(now), station: name, train: `${p.tl.c} ${p.tl.n}`, stop_id: id,
+					// Halte in Richtung München haben die Strecke im Laufweg nach dem Halt
+					direction: pathRe.test(p.dp?.ppth || '') ? 'S' : 'N',
+					planned_time: berlin(plannedTime), event,
+					old_status: prev?.status || '', new_status: cur.status,
+					cancellation_created_at: berlin(created),
+					lead_time_h: created ? hoursBetween(created, plannedTime) : '',
+					lead_time_detected_h: hoursBetween(now, plannedTime),
+					planned_path: [p.ar?.ppth, p.dp?.ppth].filter(Boolean).join(' → '), changed_path: cur.path,
+				});
+				// Beweissicherung: Soll und Änderung im Wortlaut der API
+				appendJsonl(path.join(DATA, 'snapshots', `${berlinDate(now)}.jsonl`),
+					{run_at: berlin(now), station: name, stop_id: id, event, plan: p, change: changes.get(id) || null});
+			}
+			state[id] = {...cur, plannedTime};
+		}
+		for (const [k, v] of Object.entries(state)) if (new Date(v.plannedTime) < cutoff) delete state[k];
+		writeJson(stateFile, state);
 	}
 
-	// bekannte Fahrten, deren ID ungültig ist und die auch auf der Tafel fehlen
-	for (const key of stale) {
-		const meta = index[key];
-		if (current.has(key) || !scannedOk.has(hourStart(meta.anchorPlanned).toISOString())) continue;
-		if (new Date(meta.anchorPlanned) < now) continue; // schon vorbei, Tafel zeigt sie evtl. nicht mehr
-		events.push({
-			detected_at: berlin(now), trip_key: key, train: meta.train, service_date: meta.serviceDate,
-			direction: meta.direction, event: 'FAHRT_NICHT_MEHR_GEFUNDEN',
-			stop_planned_time: berlin(meta.anchorPlanned), lead_time_h: hoursBetween(now, meta.anchorPlanned),
-		});
-		meta.missing = true;
-	}
-	// alte Einträge (> 7 Tage) aus dem Index entfernen; die Stände in state/trips bleiben erhalten
-	for (const [key, meta] of Object.entries(index)) {
-		if (new Date(meta.anchorPlanned) < now.getTime() - 7 * 24 * HOUR) delete index[key];
-	}
-
-	if (!dryRun) {
-		writeJson(indexFile, index);
-		writeJson(windowsFile, windows);
-		appendCsv(path.join(DATA, 'events.csv'), EVENT_HEADER, events);
-		appendCsv(path.join(DATA, 'runs.csv'), RUN_HEADER, [{
-			run_at: berlin(now), horizon_h: horizonHours, trips: current.size, events: events.length, errors,
-			board_requests: boardRequests, trip_requests: tripRequests,
-		}]);
-		writeJson(path.join(stateDir, 'lines_seen_at_anchor.json'), linesSeen);
-	}
-	return {trips: current.size, events, errors, boardRequests, tripRequests, linesSeen, blocked: blocked()};
+	appendCsv(path.join(DATA, 'events.csv'), EVENT_HEADER, events);
+	appendCsv(path.join(DATA, 'runs.csv'), RUN_HEADER,
+		[{run_at: berlin(now), halts, events: events.length, errors, requests}]);
+	return {events, errors, halts, requests};
 };
-
-// ---------- CLI ----------
 
 if (isMain(import.meta.url)) {
 	const cfg = loadConfig();
-	const args = process.argv.slice(2);
-	const hIdx = args.indexOf('--horizon');
-	const horizonHours = hIdx >= 0 ? Number(args[hIdx + 1]) : cfg.defaultHorizonHours;
-	const dryRun = args.includes('--dry-run');
-	if (!Number.isFinite(horizonHours) || horizonHours <= 0) {
-		console.error('--horizon erwartet eine Stundenzahl > 0');
-		process.exit(2);
-	}
-
-	const {createClient} = await import('db-vendo-client');
-	const {profile} = await import(`db-vendo-client/p/${cfg.profile}/index.js`);
-	const client = createClient(profile, process.env.RE1_USER_AGENT || cfg.userAgent, {enrichStations: false});
-
-	const t0 = Date.now();
-	console.log(`[${berlin(new Date())}] RE1-Sammler, Horizont ${horizonHours} h${dryRun ? ' (Probelauf, nichts wird gespeichert)' : ''}`);
-	const res = await runCollect(client, cfg, {horizonHours, dryRun});
-	console.log(`  ${res.events.length} Ereignisse, ${res.errors} Fehler, ${Math.round((Date.now() - t0) / 1000)} s`);
-	for (const e of res.events.filter(e => e.watch_stop || /FAHRT_(GESTRICHEN|NICHT)/.test(e.event))) {
-		console.log(`  → ${e.event} ${e.trip_key} ${e.stop || ''} (${e.lead_time_h} h vor Soll)`);
-	}
-	if (res.blocked) {
-		console.error('Abbruch: Alle Anfragen wurden abgelehnt. Vermutlich sperrt die DB diese IP-Adresse (siehe README, Abschnitt „Grenzen“).');
+	// lokale Zugangsdaten aus .env (nicht im Repo); auf GitHub kommen sie aus den Secrets
+	const envFile = path.join(ROOT, '.env');
+	if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
+	const {DB_CLIENT_ID, DB_API_KEY} = process.env;
+	if (!DB_CLIENT_ID || !DB_API_KEY) {
+		console.error('DB_CLIENT_ID und DB_API_KEY fehlen (lokal in .env eintragen, auf GitHub als Secrets). Zugang kostenlos über https://developers.deutschebahn.com (API „Timetables“), siehe README.');
 		process.exit(1);
 	}
+	const fetchXml = async (p) => {
+		const res = await withRetry(async () => {
+			const r = await fetch(cfg.baseUrl + p, {
+				headers: {'DB-Client-Id': DB_CLIENT_ID, 'DB-Api-Key': DB_API_KEY, accept: 'application/xml'},
+				signal: AbortSignal.timeout(20000), // hängende Verbindung nicht abwarten
+			});
+			if (r.status === 404) return '<timetable/>'; // leere oder noch nicht veröffentlichte Stundenscheibe
+			if (r.status === 401 || r.status === 403) {
+				throw Object.assign(new Error(`HTTP ${r.status}: Zugangsdaten abgelehnt oder API „Timetables“ nicht abonniert`), {fatal: true});
+			}
+			if (!r.ok) throw new Error(`HTTP ${r.status}`);
+			return r.text();
+		}, {retries: cfg.maxRetries ?? 3, label: p});
+		await sleep(cfg.requestDelayMs ?? 1100); // erlaubt sind 60 Anfragen pro Minute
+		return res;
+	};
+	console.log(`[${berlin(new Date())}] RE1-Monitor`);
+	const {events, errors, halts, requests} = await runCollect(fetchXml, cfg);
+	const hits = events.filter(e => e.event !== 'ERSTMALS_GESEHEN');
+	console.log(`  ${halts} Halte beobachtet, ${events.length} Ereignisse (${hits.length} Änderungen), ${errors} Fehler, ${requests} Anfragen`);
+	for (const e of hits) {
+		console.log(`  → ${e.event} ${e.train} ${e.station} ${e.planned_time}${e.cancellation_created_at ? ` (angelegt ${e.cancellation_created_at})` : ''}`);
+	}
+	if (errors && !halts) process.exit(1);
 }

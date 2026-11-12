@@ -1,26 +1,12 @@
 {
-  "userAgent": "re1-monitor (privates Fahrgast-Monitoring; https://github.com/frederikwalter/RE1-Monitor)",
-  "profile": "dbnav",
+  "baseUrl": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
 
-  "lineRegex": "^RE\\s*1(?!\\d)",
-  "anchorStations": ["Treuchtlingen"],
-  "stationIds": {"Treuchtlingen": "8000122"},
-  "watchStations": ["Roth", "Nürnberg Hbf"],
+  "stations": ["Roth", "Nürnberg Hbf"],
+  "categories": ["RE", "RB"],
+  "line": "RE1",
+  "pathRegex": "München|Ingolstadt|Treuchtlingen",
 
-  "southRegex": "München|Ingolstadt|Eichstätt|Dollnstein|Solnhofen|Petershausen|Pfaffenhofen|Rohrbach|Augsburg|Donauwörth|Otting",
-  "northRegex": "Nürnberg|Roth|Schwabach|Georgensgmünd|Pleinfeld|Weißenburg|Ellingen|Allersberg",
-
-  "defaultHorizonHours": 72,
-  "lookbackHours": 1,
-  "rescanHours": 6,
-  "requestDelayMs": 1200,
-  "maxRetries": 3,
-
-  "iris": {
-    "baseUrl": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
-    "stations": ["Roth", "Nürnberg Hbf", "Treuchtlingen"],
-    "category": "RE",
-    "line": "1",
-    "planHoursAhead": 12
-  }
+  "planHoursAhead": 24,
+  "requestDelayMs": 1100,
+  "maxRetries": 3
 }

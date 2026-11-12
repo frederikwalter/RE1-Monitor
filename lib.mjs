@@ -48,6 +48,7 @@ export const withRetry = async (fn, {retries = 3, baseDelay = 2000, label = ''} 
 	for (let i = 0; i <= retries; i++) {
 		try { return await fn(); } catch (err) {
 			lastErr = err;
+			if (err.fatal) break;
 			if (i < retries) {
 				const wait = baseDelay * 2 ** i;
 				console.error(`  ! ${label} fehlgeschlagen (${err.code || err.message}), neuer Versuch in ${wait / 1000} s`);
@@ -68,8 +69,6 @@ export const berlinDate = (d) => berlin(d).slice(0, 10);
 
 export const hoursBetween = (from, to) =>
 	(from && to) ? Math.round((new Date(to) - new Date(from)) / 36e5 * 100) / 100 : '';
-
-export const normName = (s) => (s || '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
 
 export const isMain = (metaUrl) =>
 	Boolean(process.argv[1]) && fileURLToPath(metaUrl) === path.resolve(process.argv[1]);

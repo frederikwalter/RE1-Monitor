@@ -26,75 +26,51 @@ export const BUCKETS = [
 ];
 const bucketOf = (h) => BUCKETS.findIndex(([, min]) => h >= min);
 
-const norm = (s) => (s || '').normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim();
+const median = (xs) => {
+	if (!xs.length) return null;
+	const s = [...xs].sort((a, b) => a - b);
+	return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+};
 
-// "Roth:Halt; Nürnberg Hbf:entfällt" → Map(Name → Status)
-const parseSummary = (s) => new Map((s || '').split('; ')
-	.map(p => p.match(/^(.*):(Halt|entfällt)$/))
-	.filter(Boolean)
-	.map(m => [m[1], m[2]]));
-
-const CANCEL_EVENTS = ['HALT_GESTRICHEN', 'HALT_AUS_LAUFWEG_ENTFERNT'];
-
-export const buildReport = (events, irisEvents = []) => {
-	const byTrip = new Map();
+// Eine Zeile pro Halt (Bahnhof × Fahrt). Eine Streichung zählt mit dem Zeitpunkt, zu dem die DB
+// sie angelegt hat (cancellation_created_at); fehlt er, mit dem Zeitpunkt des Abrufs.
+export const buildReport = (events) => {
+	const byHalt = new Map();
 	for (const e of events) {
-		if (!byTrip.has(e.trip_key)) byTrip.set(e.trip_key, []);
-		byTrip.get(e.trip_key).push(e);
-	}
-
-	// eine Zeile pro Fahrt und beobachtetem Halt
-	const rows = [];
-	for (const [key, evs] of byTrip) {
-		const first = evs.find(e => e.event === 'FAHRT_ERSTMALS_GESEHEN');
-		if (!first) continue;
-		for (const [halt, statusAtFirst] of parseSummary(first.new_value)) {
-			const stopEvs = evs.filter(e => norm(e.stop) === norm(halt));
-			const cancel = stopEvs.find(e => CANCEL_EVENTS.includes(e.event));
-			const restored = cancel && stopEvs.find(e =>
-				['HALT_WIEDERHERGESTELLT', 'HALT_HINZUGEFUEGT'].includes(e.event) && e.detected_at > cancel.detected_at);
-			const planned = (cancel || stopEvs.find(e => e.stop_planned_time))?.stop_planned_time || '';
-			rows.push({
-				tripKey: key, train: first.train, serviceDate: first.service_date, direction: first.direction,
-				halt, statusAtFirst, firstSeen: first.detected_at, firstSeenLeadH: Number(first.lead_time_h),
-				plannedTime: planned,
-				cancelDetected: cancel?.detected_at || '', cancelKind: cancel?.event || '',
-				cancelLeadH: cancel ? Number(cancel.lead_time_h) : null,
-				sameDay: cancel && planned ? cancel.detected_at.slice(0, 10) === planned.slice(0, 10) : null,
-				restored: restored?.detected_at || '',
-			});
-		}
-	}
-
-	const planned = rows.filter(r => r.statusAtFirst === 'Halt');
-	const cancelledLater = planned.filter(r => r.cancelDetected);
-	const histogram = BUCKETS.map(([label]) => ({label, count: 0}));
-	for (const r of cancelledLater) histogram[bucketOf(r.cancelLeadH)].count++;
-
-	// IRIS: Ankunft und Abfahrt eines Halts zu einer Zeile zusammenfassen, frühester Anlagezeitpunkt zählt
-	const iris = new Map();
-	for (const e of irisEvents) {
-		if (e.new_status !== 'gestrichen' || !e.cancellation_created_at) continue;
 		const k = `${e.station}|${e.stop_id}`;
-		const old = iris.get(k);
-		if (!old || e.cancellation_created_at < old.createdAt) {
-			iris.set(k, {
-				train: e.train, station: e.station, plannedTime: e.planned_time,
-				createdAt: e.cancellation_created_at, leadH: Number(e.lead_time_from_clt_h),
-				sameDay: e.cancellation_created_at.slice(0, 10) === e.planned_time.slice(0, 10),
-			});
-		}
+		if (!byHalt.has(k)) byHalt.set(k, []);
+		byHalt.get(k).push(e);
 	}
+
+	const rows = [];
+	for (const evs of byHalt.values()) {
+		const first = evs[0], last = evs.at(-1);
+		const cancel = evs.find(e => e.new_status === 'gestrichen');
+		const createdAt = cancel ? (cancel.cancellation_created_at || cancel.detected_at) : '';
+		const lead = cancel ? (cancel.lead_time_h !== '' ? cancel.lead_time_h : cancel.lead_time_detected_h) : '';
+		rows.push({
+			train: first.train, station: first.station, direction: first.direction,
+			plannedTime: first.planned_time, serviceDate: first.planned_time.slice(0, 10),
+			firstSeen: first.detected_at,
+			cancelled: Boolean(cancel),
+			createdAt, exact: Boolean(cancel?.cancellation_created_at),
+			leadH: cancel ? Number(lead) : null,
+			sameDay: cancel ? createdAt.slice(0, 10) === first.planned_time.slice(0, 10) : null,
+			restored: Boolean(cancel) && last.new_status === 'planmäßig',
+		});
+	}
+
+	const cancelled = rows.filter(r => r.cancelled);
+	const histogram = BUCKETS.map(([label]) => ({label, count: 0}));
+	for (const r of cancelled) histogram[bucketOf(r.leadH)].count++;
 
 	return {
-		trips: byTrip.size,
-		halts: [...new Set(rows.map(r => r.halt))].sort(),
+		halts: rows.length,
+		stations: [...new Set(rows.map(r => r.station))].sort(),
 		rows,
-		planned: planned.length,
-		cancelledLater,
-		sameDay: cancelledLater.filter(r => r.sameDay).length,
-		alreadyCancelled: rows.filter(r => r.statusAtFirst === 'entfällt').length,
+		cancelled,
+		sameDay: cancelled.filter(r => r.sameDay).length,
+		medianLeadH: median(cancelled.map(r => r.leadH)),
 		histogram,
-		iris: [...iris.values()].sort((a, b) => b.plannedTime.localeCompare(a.plannedTime)),
 	};
 };
