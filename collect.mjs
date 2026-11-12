@@ -21,13 +21,16 @@ export const EVENT_HEADER = [
 	'detected_at', 'station', 'role', 'train', 'train_type', 'stop_id', 'direction', 'planned_time', 'event',
 	'old_status', 'new_status', 'cancellation_created_at', 'lead_time_h', 'lead_time_detected_h',
 	'delay_min', 'messages', 'terminus', 'planned_path', 'changed_path_before', 'changed_path_after',
+	'arrival_planned', 'arrival_actual', 'departure_planned', 'departure_actual', 'platform_arrival', 'platform_departure',
 ];
 export const RUN_HEADER = ['run_at', 'halts', 'events', 'errors', 'requests'];
 
 const HOUR = 36e5;
 const KEEP_MS = 3 * 24 * HOUR; // Soll-Daten und Zustand 3 Tage aufbewahren
 const FOLLOW_MS = 6 * HOUR;     // so lange nach der Sollzeit wird ein Halt weiterverfolgt
-const DELAY_STEP = 5;           // ab dieser Änderung (min) wird eine Verspätung neu protokolliert
+// ab dieser Änderung (min) wird eine Verspätung neu protokolliert. In Treuchtlingen minutengenau,
+// weil dort über den Umstieg auf den Pendelzug jede Minute entscheidet.
+const DELAY_STEP = {halt: 5, kontext: 1};
 
 const xml = new XMLParser({
 	ignoreAttributes: false, attributeNamePrefix: '', parseAttributeValue: false,
@@ -45,8 +48,13 @@ export const irisTime = (s) => {
 	return new Date(local + '+01:00').toISOString();
 };
 
-const slim = (e) => e && {pt: e.pt, l: e.l, ppth: e.ppth, ps: e.ps};
+const slim = (e) => e && {pt: e.pt, pp: e.pp, l: e.l, ppth: e.ppth, ps: e.ps};
 const KINDS = ['ar', 'dp'];
+
+// Richtung Nürnberg, wenn der Zug nach dem Halt nach Nürnberg fährt oder (ohne Abfahrt) nicht von dort kommt
+export const directionOf = (p) => p.dp
+	? (/Nürnberg/.test(p.dp.ppth || '') ? 'N' : 'S')
+	: (/Nürnberg/.test(p.ar?.ppth || '') ? 'S' : 'N');
 
 // Stand eines Halts aus Soll (p) und Änderung (c).
 //   status   – gestrichen, wenn Ankunft und Abfahrt (soweit vorhanden) beide gestrichen sind
@@ -77,7 +85,17 @@ export const haltStatus = (p, c) => {
 		if (p.dp?.ppth && after === '') terminus = 'endet hier';
 		else if (p.ar?.ppth && before === '') terminus = 'beginnt hier';
 	}
-	return {status, clt, delay, messages, terminus, before: before ?? '', after: after ?? ''};
+	// Ankunft und Abfahrt einzeln (Ortszeit Berlin): Soll, Ist (geänderte Zeit, sonst Soll) und Gleis.
+	// Ist und Gleis bleiben leer, wenn die Ankunft bzw. Abfahrt gestrichen ist oder der Zug hier endet bzw. beginnt.
+	const times = {};
+	for (const [kind, name] of [['ar', 'arrival'], ['dp', 'departure']]) {
+		const pt = p[kind]?.pt || c[kind]?.pt;
+		const gone = !pt || cs(kind) === 'c' || (kind === 'dp' ? after === '' : before === '');
+		times[`${name}_planned`] = pt ? berlin(irisTime(pt)) : '';
+		times[`${name}_actual`] = gone ? '' : berlin(irisTime(c[kind]?.ct || pt));
+		times[`platform_${name}`] = gone ? '' : (c[kind]?.cp || p[kind]?.pp || c[kind]?.pp || '');
+	}
+	return {status, clt, delay, messages, terminus, before: before ?? '', after: after ?? '', times};
 };
 
 const EVENT_FOR = {
@@ -178,18 +196,15 @@ export const runCollect = async (fetchXml, cfg, {now = new Date()} = {}) => {
 			const cur = haltStatus(p, c);
 			const pathChanged = prev && (prev.before !== cur.before || prev.after !== cur.after || prev.terminus !== cur.terminus);
 			const event = !prev ? 'ERSTMALS_GESEHEN'
-				// Stand aus einer älteren Programmversion: einmalig um die neuen Angaben ergänzen
-				: prev.before === undefined ? 'DATEN_ERGAENZT'
 				: prev.status !== cur.status ? (EVENT_FOR[cur.status] || 'STATUS_GEAENDERT')
 				: pathChanged ? 'LAUFWEG_GEAENDERT'
-				: Math.abs(cur.delay - (prev.loggedDelay ?? 0)) >= DELAY_STEP ? 'VERSPAETUNG' : null;
+				: Math.abs(cur.delay - (prev.loggedDelay ?? 0)) >= DELAY_STEP[role] ? 'VERSPAETUNG' : null;
 			if (event) {
 				const created = irisTime(cur.clt);
 				events.push({
 					detected_at: berlin(now), station: name, role, train: `${p.tl.c} ${p.tl.n}`, train_type: p.tl.t || '',
 					stop_id: id,
-					// Halte in Richtung München haben die Strecke im Laufweg nach dem Halt
-					direction: pathRe.test(p.dp?.ppth || '') ? 'S' : 'N',
+					direction: directionOf(p),
 					planned_time: berlin(plannedTime), event,
 					old_status: prev?.status || '', new_status: cur.status,
 					cancellation_created_at: berlin(created),
@@ -198,12 +213,14 @@ export const runCollect = async (fetchXml, cfg, {now = new Date()} = {}) => {
 					delay_min: cur.delay, messages: cur.messages, terminus: cur.terminus,
 					planned_path: [p.ar?.ppth, p.dp?.ppth].filter(Boolean).join(' → '),
 					changed_path_before: cur.before, changed_path_after: cur.after,
+					...cur.times,
 				});
 				// Beweissicherung: Soll und Änderung im Wortlaut der API
 				appendJsonl(path.join(DATA, 'snapshots', `${berlinDate(now)}.jsonl`),
 					{run_at: berlin(now), station: name, stop_id: id, event, plan: p, change: changes.get(id) || null});
 			}
-			state[id] = {...cur, plannedTime, loggedDelay: event ? cur.delay : (prev?.loggedDelay ?? 0)};
+			const {times, ...keep} = cur;
+			state[id] = {...keep, plannedTime, loggedDelay: event ? cur.delay : (prev?.loggedDelay ?? 0)};
 		}
 		for (const [k, v] of Object.entries(state)) if (new Date(v.plannedTime) < cutoff) delete state[k];
 		writeJson(stateFile, state);

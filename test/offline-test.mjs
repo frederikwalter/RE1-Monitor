@@ -55,19 +55,13 @@ const fetchXml = async (p) => {
 };
 const run = (now) => runCollect(fetchXml, cfg, {now: new Date(now)});
 
-// Vorhandene events.csv im alten Format (vor diesem Umbau): muss beim ersten Lauf übernommen werden
-fs.writeFileSync(path.join(tmp, 'events.csv'),
-	'detected_at,station,train,stop_id,direction,planned_time,event,old_status,new_status,cancellation_created_at,lead_time_h,lead_time_detected_h,planned_path,changed_path\n'
-	+ '2026-11-13T05:00:00,Roth,RE 9999,999-2611131000-1,N,2026-11-13T10:25:00,ERSTMALS_GESEHEN,,planmäßig,,,5.4,München Hbf|Ingolstadt Hbf → Nürnberg Hbf,\n');
-
 // Lauf 1, 05:00: drei RE1-Halte in Roth erstmals gesehen, alle planmäßig
 let r = await run('2026-11-14T05:00+01:00');
 assert.deepEqual(names(r), ['ERSTMALS_GESEHEN', 'ERSTMALS_GESEHEN', 'ERSTMALS_GESEHEN'], 'RE 16 und fremde Linie ausgefiltert');
 assert.equal(rothPlanCalls, 13);
-const migrated = readCsv('events.csv');
-assert.equal(Object.keys(migrated[0]).join(','), EVENT_HEADER.join(','), 'alte Datei auf neue Kopfzeile umgeschrieben');
-assert.equal(migrated[0].train, 'RE 9999', 'alte Zeile erhalten');
-assert.equal(migrated.length, 4);
+const first = readCsv('events.csv');
+assert.equal(Object.keys(first[0]).join(','), EVENT_HEADER.join(','), 'neue Datei mit Kopfzeile');
+assert.equal(first.length, 3);
 
 // Lauf 2, 06:00: RE 4041 in Roth gestrichen (angelegt 05:47), endet als zusätzlicher Halt in Treuchtlingen
 fchg.Roth = `<timetable><s id="111-2611141328-4">
@@ -132,7 +126,7 @@ for (const e of events) console.log(' ', e.detected_at, e.station.padEnd(13), e.
 
 const now = '2026-11-14T23:30:00';
 const rep = buildReport(events, runs, {now, filter: {from: '2026-11-14'}});
-assert.equal(rep.trains.length, 3, 'Zeitraumfilter blendet den alten Zug vom 13.11. aus');
+assert.equal(rep.trains.length, 3);
 const t4041 = rep.trains.find(t => t.number === '4041');
 assert.equal(t4041.type, 'durch');
 assert.equal(t4041.outcome, 'treuchtlingen');
@@ -140,9 +134,9 @@ assert.equal(t4041.contextDelay, 12);
 assert.equal(rep.trains.find(t => t.number === '39540').type, 'pendel');
 assert.equal(rep.trains.find(t => t.number === '4042').delay, 15);
 assert.equal(rep.run, 2);
-assert.deepEqual(rep.outcomes, {planned: 1, treuchtlingen: 1, gone: 0, unknown: 0});
+assert.deepEqual(rep.outcomes, {planned: 1, treuchtlingen: 1, gone: 0});
 assert.deepEqual(rep.shuttle, {run: 1, cancelled: 0});
-assert.deepEqual(rep.days, [{date: '2026-11-14', planned: 1, treuchtlingen: 1, gone: 0, unknown: 0}]);
+assert.deepEqual(rep.days, [{date: '2026-11-14', planned: 1, treuchtlingen: 1, gone: 0}]);
 assert.equal(rep.cancelledHalts, 1);
 assert.equal(rep.sameDay, 1);
 assert.equal(rep.medianLeadH, 9.65);
@@ -153,9 +147,7 @@ assert.deepEqual(rep.byTrain.N.map(t => [t.train, t.byDate['2026-11-14']]), [['R
 assert.deepEqual(rep.coverage.gaps.map(g => g.hours), [8, 7], 'Lücken 08:00–16:00 und 16:00–23:00');
 assert.equal(rep.coverage.lossy.length, 0);
 
-const all = buildReport(events, runs, {now});
-assert.equal(all.run, 3, 'ohne Filter zählt der Zug vom 13.11. mit');
-assert.equal(all.trains.find(t => t.number === '9999').outcome, 'planned');
+assert.equal(buildReport(events, runs, {now, filter: {to: '2026-11-13'}}).run, 0, 'Zeitraumfilter');
 assert.equal(buildReport(events, runs, {now, filter: {hours: 'hvz'}}).run, 0, 'Tageszeitfilter');
 assert.equal(buildReport(events, runs, {now, filter: {days: 'wochenende'}}).run, 2, '14.11.2026 ist ein Samstag');
 
@@ -166,4 +158,75 @@ assert.match(summary, /1 Zug endete oder begann in Treuchtlingen/);
 assert.match(summary, /Presseinformation vom 09\.10\.2026/);
 assert.match(summary, /keine generellen zusätzlichen Verspätungen/);
 assert.match(buildSummary(buildReport(events, runs, {now, filter: {hours: 'hvz'}}))[0], /noch kein beobachteter Zug/);
+assert.equal(rep.transfers.pairs.length, 0, 'ohne Pendelzug in Treuchtlingen kein Umstieg');
+
+// ---------- Umstieg auf Pendelzüge in Treuchtlingen, 15.11.2026 ----------
+// Die Pendelzüge stehen in Treuchtlingen nur in den Änderungen, Laufweg nur Roth/Nürnberg.
+//   A  RE 4010 endet 10:22 (+10)  → Pendel 39540 ab 10:21 pünktlich        → verpasst
+//   B  RE 4040 endet 20:22         → Pendel 39550 ab 20:22                  → erreicht (0 min)
+//   C  RE 4044 endet 22:22 (+8)    → Pendel 39544 ab 22:21, wartet (+10/+11) → erreicht
+//   D  RE 4020 endet 14:21         → kein Pendelzug
+//   E  Pendel 39561 aus Nürnberg an 18:38 (+7) → RE 4037 beginnt 18:40 pünktlich → verpasst
+const thru = (id, n, ar, arCt, pp) => `<s id="${id}"><tl c="RE" n="${n}" t="p"/>`
+	+ `<ar pt="${ar}" ps="a"${arCt ? ` ct="${arCt}"` : ''} pp="${pp}" l="RE1" ppth="München Hbf|Ingolstadt Hbf"><m t="d" c="34"/></ar>`
+	+ `<dp pt="${ar}" ps="a" cpth="" l="RE1" ppth="Roth|Nürnberg Hbf"/></s>`;
+const shuttleN = (id, n, dp, dpCt, pp) => `<s id="${id}"><tl c="RE" n="${n}" t="s"/>`
+	+ `<dp pt="${dp}"${dpCt ? ` ct="${dpCt}"` : ''} pp="${pp}" l="RE1" ppth="Roth|Nürnberg Hbf"/></s>`;
+const treuchtlingen15 = (c39544) => '<timetable>'
+	+ thru('A-2611150904-9', '4010', '2611151022', '2611151032', '3') + shuttleN('S1-2611151021-1', '39540', '2611151021', '', '2')
+	+ thru('B-2611151904-9', '4040', '2611152022', '', '3') + shuttleN('S2-2611152022-1', '39550', '2611152022', '', '2')
+	+ thru('C-2611152104-9', '4044', '2611152222', '2611152230', '3') + shuttleN('S3-2611152221-1', '39544', '2611152221', c39544, '2')
+	+ thru('D-2611151304-9', '4020', '2611151421', '', '3')
+	+ '<s id="S4-2611151810-3"><tl c="RE" n="39561" t="s"/><ar pt="2611151838" ct="2611151845" pp="2" l="RE1" ppth="Nürnberg Hbf|Roth"/></s>'
+	+ '<s id="E-2611151840-1"><tl c="RE" n="4037" t="p"/><ar pt="2611151840" ps="a" cpth="" pp="3" l="RE1" ppth="Nürnberg Hbf|Roth"/>'
+	+ '<dp pt="2611151840" ps="a" pp="3" l="RE1" ppth="Ingolstadt Hbf|München Hbf"/></s>'
+	+ '</timetable>';
+// In Roth: RE 4040 gestrichen, an seiner Stelle der Pendelzug 39550
+fchg.Roth = '<timetable><s id="S2-2611152022-2"><tl c="RE" n="39550" t="s"/><ar pt="2611152040" l="RE1" ppth="Treuchtlingen"/><dp pt="2611152040" l="RE1" ppth="Nürnberg Hbf"/></s>'
+	+ '<s id="B-2611151904-10"><tl c="RE" n="4040" t="p"/><ar pt="2611152040" cs="c" clt="2611150300" l="RE1" ppth="München Hbf|Ingolstadt Hbf"/><dp pt="2611152040" cs="c" clt="2611150300" l="RE1" ppth="Nürnberg Hbf"/></s></timetable>';
+fchg.Treuchtlingen = treuchtlingen15('2611152231');
+r = await run('2026-11-15T09:00+01:00');
+const tEvents = r.events.filter(e => e.station === 'Treuchtlingen');
+assert.equal(tEvents.length, 9, 'alle Durchläufer und Pendelzüge in Treuchtlingen erfasst');
+const s39550 = tEvents.find(e => e.train === 'RE 39550');
+assert.equal(s39550.direction, 'N');
+assert.equal(s39550.departure_planned, '2026-11-15T20:22:00');
+assert.equal(s39550.platform_departure, '2');
+assert.equal(s39550.arrival_planned, '');
+const t4010 = tEvents.find(e => e.train === 'RE 4010');
+assert.deepEqual([t4010.arrival_actual, t4010.platform_arrival, t4010.departure_actual], ['2026-11-15T10:32:00', '3', ''], 'endet hier: keine Abfahrt');
+assert.equal(tEvents.find(e => e.train === 'RE 39561').direction, 'S', 'Pendelzug aus Nürnberg');
+assert.equal(tEvents.find(e => e.train === 'RE 4037').direction, 'S');
+
+// 1 min mehr Verspätung: in Treuchtlingen protokolliert (in Roth erst ab 5 min)
+fchg.Treuchtlingen = treuchtlingen15('2611152232');
+r = await run('2026-11-15T10:00+01:00');
+assert.deepEqual(r.events.map(e => [e.event, e.train, e.departure_actual]), [['VERSPAETUNG', 'RE 39544', '2026-11-15T22:32:00']]);
+
+const events15 = readCsv('events.csv');
+const rep15 = buildReport(events15, readCsv('runs.csv'), {now: '2026-11-16T00:00:00', filter: {from: '2026-11-15'}});
+const tr = rep15.transfers;
+const pairOf = (n) => tr.pairs.find(p => p.through.train === `RE ${n}`);
+assert.deepEqual(tr.pairs.map(p => [p.through.train, p.shuttle.train, p.plannedMin, p.actualMin, p.result]).sort(), [
+	['RE 4010', 'RE 39540', -1, -11, 'missed'],
+	['RE 4037', 'RE 39561', 2, -5, 'missed'],
+	['RE 4040', 'RE 39550', 0, 0, 'reached'],
+	['RE 4044', 'RE 39544', -1, 2, 'reached'],
+]);
+assert.deepEqual([pairOf(4040).platformArr, pairOf(4040).platformDep], ['3', '2']);
+assert.deepEqual(tr.counts, {reached: 2, missed: 2, feederCancelled: 0, connectionCancelled: 0, open: 0});
+assert.deepEqual([tr.through, tr.withShuttle, tr.withoutShuttle, tr.decided, tr.platformChange], [5, 4, 1, 4, 4]);
+assert.deepEqual(tr.plannedRange, [-1, 2]);
+assert.deepEqual(tr.slots.map(s => [s.direction, s.through, s.arr, s.dep, s.counts.reached]),
+	[['N', 'RE 4010', '10:22', '10:21', 0], ['N', 'RE 4040', '20:22', '20:22', 1], ['N', 'RE 4044', '22:22', '22:21', 1], ['S', 'RE 4037', '18:38', '18:40', 0]]);
+assert.equal(rep15.trains.find(t => t.number === '39550').replaces, 'RE 4040', 'Pendelzug in Roth seinem Durchläufer zugeordnet');
+assert.equal(buildReport(events15, [], {now: '2026-11-15T21:00:00', filter: {from: '2026-11-15'}}).transfers.counts.open, 1, 'RE 4044 noch nicht angekommen');
+assert.deepEqual(buildReport(events15, [], {now: '2026-11-16T00:00:00', filter: {from: '2026-11-15', hours: 'hvz'}}).transfers.pairs.map(p => p.through.train), ['RE 4037'], 'Filter wirkt: nur 18:40 liegt in der Hauptverkehrszeit');
+
+const summary15 = buildSummary(rep15).join('\n\n');
+console.log('\n' + summary15);
+assert.match(summary15, /Für 4 von 5 in Treuchtlingen endenden oder beginnenden durchgehenden Zügen gab es dort einen Pendelzug/);
+assert.match(summary15, /für einen weiteren nicht/);
+assert.match(summary15, /Die geplante Umstiegszeit betrug −1 bis 2 Minuten, in 4 von 4 Fällen mit Wechsel des Gleises/);
+assert.match(summary15, /Von 4 Umstiegen waren 2 \(50 %\) erreichbar, 2 nicht/);
 console.log('\n✓ Alle Offline-Tests bestanden');

@@ -5,7 +5,7 @@
   "contextStations": ["Treuchtlingen"],
   "categories": ["RE", "RB"],
   "line": "RE1",
-  "pathRegex": "München|Ingolstadt|Treuchtlingen",
+  "pathRegex": "München|Ingolstadt|Treuchtlingen|\\bRoth\\b",
 
   "planHoursAhead": 24,
   "requestDelayMs": 1100,

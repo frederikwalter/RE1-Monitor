@@ -11,7 +11,7 @@
 	--text: #0b0b0b; --text-2: #52514e; --text-3: #7a7872;
 	--bar: #2a78d6; --bar-track: #ecebe6;
 	/* Ausgänge: validiert mit dem dataviz-Prüfskript (CVD-Abstand ≥ 24, Kontrast ≥ 3:1) */
-	--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-unknown: #a8a69f;
+	--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-neutral: #a8a69f;
 	--good: #0ca30c; --critical: #d03b3b; --warning: #fab219;
 }
 @media (prefers-color-scheme: dark) {
@@ -20,7 +20,7 @@
 		--page: #111110; --surface: #1a1a19; --border: #33332f;
 		--text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e85;
 		--bar: #3987e5; --bar-track: #262624;
-		--o-planned: #3987e5; --o-treuchtlingen: #d95926; --o-gone: #9085e9; --o-unknown: #5c5b56;
+		--o-planned: #3987e5; --o-treuchtlingen: #d95926; --o-gone: #9085e9; --o-neutral: #5c5b56;
 	}
 }
 * { box-sizing: border-box; }
@@ -77,7 +77,7 @@ button:hover { border-color: var(--text-3); }
 .o-planned { background: var(--o-planned); }
 .o-treuchtlingen { background: var(--o-treuchtlingen); }
 .o-gone { background: var(--o-gone); }
-.o-unknown { background: var(--o-unknown); }
+.o-neutral { background: var(--o-neutral); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
 .sw {
 	display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 3px;
@@ -112,6 +112,8 @@ table.calendar { width: auto; }
 .cols > section { margin-top: 16px; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; align-items: center; }
+.filters label { display: flex; align-items: center; max-width: 100%; min-width: 0; }
+.filters select { min-width: 0; max-width: 100%; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -135,7 +137,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 		color-scheme: light;
 		--page: #fff; --surface: #fff; --border: #d4d2cc; --text: #000; --text-2: #333; --text-3: #555;
 		--bar: #2a78d6; --bar-track: #eee;
-		--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-unknown: #a8a69f;
+		--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-neutral: #a8a69f;
 	}
 	* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	body { font-size: 11pt; }
@@ -219,6 +221,18 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 			<div class="pies" id="pies"></div>
 		</section>
 
+		<section class="long">
+			<h2>Umstieg in Treuchtlingen</h2>
+			<p class="note">Endet ein durchgehender Zug in Treuchtlingen, setzt die DB für manche Fahrten einen Pendelzug der Linie RE1 nach Roth und Nürnberg ein (in der Gegenrichtung entsprechend). Das Tool erkennt jeden solchen Pendelzug selbst und ordnet ihn dem durchgehenden Zug derselben Richtung mit der nächstgelegenen Sollzeit zu (höchstens 30 Minuten entfernt). Erreichbar heißt: Der Anschlusszug fuhr laut der letzten Meldung der DB nicht vor der Ankunft des Zubringers ab. Ein Gleiswechsel ist dabei nicht berücksichtigt.</p>
+			<div class="tiles" id="transfer-tiles"></div>
+			<h3>Je Verbindung</h3>
+			<div id="transfer-legend"></div>
+			<div class="scroll"><table class="calendar" id="transfer-slots"></table></div>
+			<h3>Alle Umstiege</h3>
+			<div class="filters"><button id="transfer-download" type="button">Als CSV herunterladen</button></div>
+			<div class="scroll"><table id="transfers"></table></div>
+		</section>
+
 		<div class="cols">
 			<section>
 				<h2>Wie lange vor der Abfahrt wurde gestrichen?</h2>
@@ -260,6 +274,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 			<ul>
 				<li><strong>Quelle:</strong> offizielle Timetables-API der Deutschen Bahn (DB API Marketplace), stündlich abgefragt für Roth, Nürnberg Hbf und Treuchtlingen. Die API liefert den Sollfahrplan rund 18 Stunden im Voraus und alle Änderungen daran.</li>
 				<li><strong>Durchgehender Zug:</strong> Laut Fahrplan führt der Laufweg über München oder Ingolstadt. <strong>Pendelzug:</strong> fährt nur zwischen Treuchtlingen und Nürnberg; er wird getrennt gezählt.</li>
+				<li><strong>Umstieg:</strong> Zubringer ist der in Treuchtlingen endende Zug bzw. der Pendelzug aus Nürnberg, Anschluss der jeweils andere. Maßgeblich sind die tatsächlichen Zeiten aus der letzten Meldung der DB (in Treuchtlingen minutengenau protokolliert). Der Umstieg gilt als erreichbar, wenn der Anschlusszug nicht vor der Ankunft des Zubringers abfuhr.</li>
 				<li><strong>Planmäßig:</strong> Kein Halt des Zuges in Roth oder Nürnberg Hbf ist gestrichen. <strong>Endet/beginnt in Treuchtlingen:</strong> Halte gestrichen, der Zug hält aber in Treuchtlingen. <strong>Nicht in Treuchtlingen gesehen:</strong> Halte gestrichen und auch kein Halt in Treuchtlingen.</li>
 				<li><strong>Zeitpunkt der Streichung:</strong> Feld <code>clt</code> der API, also wann die DB die Streichung in ihrem System angelegt hat. Er hängt nicht vom Abfragezeitpunkt ab.</li>
 				<li><strong>Beweissicherung:</strong> Zu jeder Änderung wird die Antwort der API im Wortlaut gespeichert. <span id="raw-links"></span></li>
@@ -267,6 +282,6 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 		</section>
 	</div>
 </main>
-<script type="module" src="./app.js?v=5"></script>
+<script type="module" src="./app.js?v=6"></script>
 </body>
 </html>

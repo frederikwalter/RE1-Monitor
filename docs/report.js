@@ -39,7 +39,6 @@ export const OUTCOMES = {
 	planned: 'planmäßig',
 	treuchtlingen: 'endet/beginnt in Treuchtlingen',
 	gone: 'Halte gestrichen, nicht in Treuchtlingen gesehen',
-	unknown: 'Halte gestrichen, Verbleib nicht erfasst',
 };
 
 // Bedeutung der Meldungscodes. Die DB veröffentlicht keine Liste; die Texte stammen aus dem
@@ -50,6 +49,15 @@ export const MESSAGE_CODES = {
 	d48: 'Verspätung aus vorheriger Fahrt', d55: 'Technischer Defekt an einem anderen Zug',
 };
 export const messageLabel = (code) => MESSAGE_CODES[code] ? `${MESSAGE_CODES[code]} (${code})` : `Code ${code}`;
+
+// Umstieg in Treuchtlingen zwischen durchgehendem Zug und Pendelzug. Erreichbar, wenn der Anschlusszug
+// frühestens so viele Minuten nach der Ankunft des Zubringers abfährt.
+export const MIN_TRANSFER_MIN = 0;
+export const TRANSFER_RESULTS = {
+	reached: 'erreicht', missed: 'verpasst', feederCancelled: 'Zubringer ausgefallen',
+	connectionCancelled: 'Anschlusszug ausgefallen', open: 'noch offen',
+};
+const PAIR_WINDOW_MIN = 30; // so weit dürfen die Sollzeiten von Zubringer und Pendelzug auseinanderliegen
 
 const HOUR = 36e5;
 const THROUGH = /München|Ingolstadt/;
@@ -63,6 +71,12 @@ const median = (xs) => {
 const tripOf = (stopId) => stopId.replace(/-\d+$/, '');
 const weekday = (date) => new Date(`${date}T12:00:00Z`).getUTCDay(); // 0 = Sonntag
 const ts = (s) => new Date(`${s}Z`).getTime(); // nur für Abstände zwischen zwei Ortszeiten
+const minutesBetween = (a, b) => (a && b) ? Math.round((ts(b) - ts(a)) / 60000) : null;
+const mostCommon = (xs) => {
+	const n = {};
+	for (const x of xs) n[x] = (n[x] || 0) + 1;
+	return Object.entries(n).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? '';
+};
 
 const matches = (t, f) => {
 	if (f.from && t.serviceDate < f.from) return false;
@@ -95,6 +109,90 @@ export const findGaps = (runs, now) => {
 	};
 };
 
+// Umstieg in Treuchtlingen. Grundlage sind die Halte dort (Rolle "kontext"):
+//   Durchläufer – Laufweg über München/Ingolstadt; Zubringer, wenn er dort endet (Richtung Nürnberg),
+//                 Anschluss, wenn er dort beginnt (Richtung München)
+//   Pendelzug   – RE1 ohne München/Ingolstadt im Laufweg, also nur Treuchtlingen ↔ Roth/Nürnberg
+// Jedem Durchläufer wird der Pendelzug derselben Richtung mit der nächstgelegenen Sollzeit zugeordnet
+// (höchstens PAIR_WINDOW_MIN Minuten entfernt, jeder Pendelzug nur einmal).
+const buildTransfers = (halts, filter, now) => {
+	// maßgebliche Sollzeit in Treuchtlingen: Ankunft des Zubringers bzw. Abfahrt des Anschlusszuges
+	const key = (h) => (h.through === (h.direction === 'N') ? h.arrPlanned : h.depPlanned) || h.plannedTime;
+	const here = halts.filter(h => h.role === 'kontext');
+	const through = here.filter(h => h.through
+		&& (h.terminus === (h.direction === 'N' ? 'endet hier' : 'beginnt hier') || h.status === 'gestrichen'))
+		.sort((a, b) => key(a).localeCompare(key(b)));
+	const shuttles = here.filter(h => !h.through);
+	const used = new Set();
+
+	const allPairs = [];
+	for (const t of through) {
+		const best = shuttles
+			.filter(s => s.direction === t.direction && !used.has(s))
+			.map(s => [s, Math.abs(minutesBetween(key(t), key(s)))])
+			.filter(([, d]) => d <= PAIR_WINDOW_MIN)
+			.sort((a, b) => a[1] - b[1])[0]?.[0];
+		if (!best) continue;
+		used.add(best);
+		const [from, to] = t.direction === 'N' ? [t, best] : [best, t];
+		const arrActual = from.status === 'gestrichen' ? '' : from.arrActual;
+		const depActual = to.status === 'gestrichen' ? '' : to.depActual;
+		const result = !arrActual ? (from.cancelled ? 'feederCancelled' : 'open')
+			: !depActual ? (to.cancelled ? 'connectionCancelled' : 'open')
+			: (arrActual > now || depActual > now) ? 'open'
+			: minutesBetween(arrActual, depActual) >= MIN_TRANSFER_MIN ? 'reached' : 'missed';
+		allPairs.push({
+			direction: t.direction, serviceDate: key(t).slice(0, 10), plannedTime: key(t),
+			through: t, shuttle: best, from, to,
+			arrPlanned: from.arrPlanned, arrActual, platformArr: from.platformArr,
+			depPlanned: to.depPlanned, depActual, platformDep: to.platformDep,
+			plannedMin: minutesBetween(from.arrPlanned, to.depPlanned),
+			actualMin: minutesBetween(arrActual, depActual),
+			result,
+			shuttleSeen: best.firstSeen,
+			shuttleLeadH: Math.round((ts(key(best)) - ts(best.firstSeen)) / HOUR * 10) / 10,
+		});
+	}
+
+	const pairs = allPairs.filter(p => matches(p, filter)).sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
+	const pastThrough = through.filter(t => key(t) < now && matches({serviceDate: key(t).slice(0, 10), plannedTime: key(t)}, filter));
+	const paired = new Set(allPairs.map(p => p.through));
+	const counts = Object.fromEntries(Object.keys(TRANSFER_RESULTS).map(k => [k, pairs.filter(p => p.result === k).length]));
+	const decided = pairs.filter(p => p.result !== 'open');
+
+	// je Lage (Richtung + Durchläufer): an welchen Tagen der Umstieg klappte
+	const slotMap = new Map();
+	for (const p of [...pairs].reverse()) {
+		const k = `${p.direction}|${p.through.train}`;
+		if (!slotMap.has(k)) slotMap.set(k, {direction: p.direction, through: p.through.train, list: []});
+		slotMap.get(k).list.push(p);
+	}
+	const slots = [...slotMap.values()].map(s => ({
+		direction: s.direction, through: s.through,
+		shuttles: [...new Set(s.list.map(p => p.shuttle.train))],
+		arr: mostCommon(s.list.map(p => p.arrPlanned.slice(11, 16))),
+		dep: mostCommon(s.list.map(p => p.depPlanned.slice(11, 16))),
+		platforms: mostCommon(s.list.filter(p => p.platformArr || p.platformDep).map(p => `${p.platformArr || '?'} → ${p.platformDep || '?'}`)),
+		plannedMin: Number(mostCommon(s.list.map(p => p.plannedMin))),
+		counts: Object.fromEntries(Object.keys(TRANSFER_RESULTS).map(k => [k, s.list.filter(p => p.result === k).length])),
+		byDate: Object.fromEntries(s.list.map(p => [p.serviceDate, p.result])),
+	})).sort((a, b) => a.direction.localeCompare(b.direction) || a.arr.localeCompare(b.arr));
+
+	const planned = decided.map(p => p.plannedMin).filter(v => v !== null);
+	return {
+		pairs, counts, slots,
+		decided: decided.length,
+		through: pastThrough.length,
+		withShuttle: pastThrough.filter(t => paired.has(t)).length,
+		withoutShuttle: pastThrough.filter(t => !paired.has(t)).length,
+		medianActualMin: median(decided.filter(p => p.actualMin !== null).map(p => p.actualMin)),
+		plannedRange: planned.length ? [Math.min(...planned), Math.max(...planned)] : null,
+		platformChange: decided.filter(p => p.platformArr && p.platformDep && p.platformArr !== p.platformDep).length,
+		// Pendelzug-Fahrt → Durchläufer, den er ersetzt (für die Tabelle "Alle Züge")
+		replaces: new Map(allPairs.map(p => [p.shuttle.trip, p.through.train])),
+	};
+};
+
 // Auswertung auf drei Ebenen:
 //   Halt  – Bahnhof × Fahrt, maßgeblich ist der letzte gemeldete Stand
 //   Zug   – alle Halte einer Fahrt; "planmäßig", wenn kein Halt in Roth/Nürnberg gestrichen ist
@@ -119,22 +217,24 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		const createdAt = cancel ? (cancel.cancellation_created_at || cancel.detected_at) : '';
 		const lead = cancel ? (cancel.lead_time_h !== '' ? cancel.lead_time_h : cancel.lead_time_detected_h) : '';
 		const measured = evs.filter(e => e.delay_min !== undefined && e.delay_min !== '');
+		const delay = measured.length ? Number(measured.at(-1).delay_min) : null;
 		halts.push({
-			trip: tripOf(first.stop_id), train: first.train, station: first.station, role: first.role || 'halt',
+			// Ankunft und Abfahrt einzeln, letzter gemeldeter Stand
+			arrPlanned: last.arrival_planned, arrActual: last.arrival_actual, platformArr: last.platform_arrival,
+			depPlanned: last.departure_planned, depActual: last.departure_actual, platformDep: last.platform_departure,
+			firstSeen: first.detected_at,
+			trip: tripOf(first.stop_id), train: first.train, station: first.station, role: first.role,
 			direction: first.direction, plannedTime: first.planned_time, serviceDate: first.planned_time.slice(0, 10),
 			status: last.new_status, cancelled,
 			createdAt, exact: Boolean(cancel?.cancellation_created_at),
 			leadH: cancel ? Number(lead) : null,
 			sameDay: cancel ? createdAt.slice(0, 10) === first.planned_time.slice(0, 10) : null,
-			delay: measured.length ? Number(measured.at(-1).delay_min) : null,
+			delay,
 			messages: [...new Set(evs.flatMap(e => (e.messages || '').split(';').filter(Boolean)))].sort(),
 			terminus: evs.findLast(e => e.terminus)?.terminus || '',
 			through: evs.some(e => THROUGH.test(`${e.planned_path}|${e.changed_path_before || ''}|${e.changed_path_after || ''}`)),
 		});
 	}
-
-	// ab wann Treuchtlingen mitbeobachtet wird: davor ist der Verbleib eines Zuges nicht erfasst
-	const contextSince = events.find(e => e.role === 'kontext')?.detected_at || '';
 
 	const byTrip = new Map();
 	for (const h of halts) {
@@ -149,14 +249,10 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		const cancelledHalts = watch.filter(h => h.cancelled);
 		const earliest = [...cancelledHalts].sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
 		const through = list.some(h => h.through);
-		let outcome = 'planned';
-		if (cancelledHalts.length) {
-			outcome = context && !context.cancelled ? 'treuchtlingen'
-				: contextSince && watch[0].plannedTime >= contextSince ? 'gone' : 'unknown';
-		}
+		const outcome = !cancelledHalts.length ? 'planned' : context && !context.cancelled ? 'treuchtlingen' : 'gone';
 		const served = watch.filter(h => !h.cancelled && h.delay !== null);
 		allTrains.push({
-			train: watch[0].train, number: watch[0].train.replace(/\D/g, ''), direction: watch[0].direction,
+			trip: watch[0].trip, train: watch[0].train, number: watch[0].train.replace(/\D/g, ''), direction: watch[0].direction,
 			plannedTime: watch[0].plannedTime, serviceDate: watch[0].serviceDate,
 			past: watch.at(-1).plannedTime < now,
 			type: through ? 'durch' : 'pendel',
@@ -170,6 +266,8 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		});
 	}
 	allTrains.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
+	const transfers = buildTransfers(halts, filter, now);
+	for (const t of allTrains) t.replaces = t.type === 'pendel' ? transfers.replaces.get(t.trip) || '' : '';
 
 	const trains = allTrains.filter(t => matches(t, filter));
 	const through = trains.filter(t => t.type === 'durch');
@@ -239,8 +337,7 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		cancelledHalts: cancelledHalts.length,
 		sameDay: cancelledHalts.filter(h => h.sameDay).length,
 		medianLeadH: median(cancelledHalts.map(h => h.leadH)),
-		leadHistogram, reasons, delays,
-		contextSince,
+		leadHistogram, reasons, delays, transfers,
 		coverage: findGaps(runs, now),
 	};
 };
@@ -274,13 +371,36 @@ export const buildSummary = (rep) => {
 	const parts = [];
 	if (o.treuchtlingen) parts.push(`${count(o.treuchtlingen, 'Zug endete oder begann', 'Züge endeten oder begannen')} in Treuchtlingen, statt Nürnberg zu erreichen`);
 	if (o.gone) parts.push(`${count(o.gone, 'Zug wurde', 'Züge wurden')} auch in Treuchtlingen nicht gesehen (ausgefallen oder anders umgeleitet)`);
-	if (o.unknown) parts.push(`bei ${count(o.unknown, 'Zug', 'Zügen')} ist der Verbleib nicht erfasst`);
 	let p = parts.length ? `Von den Zügen mit gestrichenen Halten gilt: ${parts.join('; ')}.` : '';
 	if (rep.shuttle.run) {
 		p += `${p ? ' ' : ''}Zusätzlich ${rep.shuttle.run === 1 ? 'verkehrte' : 'verkehrten'} ${count(rep.shuttle.run, 'Pendelzug', 'Pendelzüge')} zwischen Treuchtlingen und Nürnberg`
 			+ `${rep.shuttle.cancelled ? `, davon ${rep.shuttle.cancelled} mit gestrichenen Halten` : ''}.`;
 	}
 	if (p) paras.push(p);
+
+	const tr = rep.transfers;
+	if (tr.decided) {
+		const n = tr.counts;
+		const rest = tr.through - tr.withShuttle;
+		p = `Für ${tr.withShuttle} von ${count(tr.through, 'in Treuchtlingen endenden oder beginnenden durchgehenden Zug', 'in Treuchtlingen endenden oder beginnenden durchgehenden Zügen')} gab es dort einen Pendelzug der Linie RE1 nach bzw. von Roth und Nürnberg`
+			+ `${rest === 1 ? ', für einen weiteren nicht' : rest > 1 ? `, für die übrigen ${rest} nicht` : ''}. `;
+		if (tr.plannedRange) {
+			const [lo, hi] = tr.plannedRange;
+			const minus = (m) => String(m).replace('-', '−');
+			const range = lo === hi ? `${minus(lo)} Minuten` : `${minus(lo)} bis ${minus(hi)} Minuten`;
+			const platform = tr.platformChange ? `, in ${tr.platformChange} von ${tr.decided} Fällen mit Wechsel des Gleises` : '';
+			const when = hi < 0 ? 'vor der Ankunft des Zubringers' : lo < 0 ? 'zeitgleich mit der Ankunft des Zubringers oder sogar davor' : 'zeitgleich mit der Ankunft des Zubringers';
+			p += hi <= 0
+				? `Laut Fahrplan sollte der Anschlusszug ${when} abfahren (geplante Umstiegszeit ${range}${platform}). `
+				: `Die geplante Umstiegszeit betrug ${range}${platform}. `;
+		}
+		p += `Von ${count(tr.decided, 'Umstieg', 'Umstiegen')} ${n.reached === 1 ? 'war' : 'waren'} ${n.reached} (${pct(n.reached, tr.decided)}) erreichbar`;
+		if (n.missed) p += `, ${n.missed} nicht, weil der Anschlusszug vor der Ankunft des Zubringers abfuhr`;
+		const gone = n.feederCancelled + n.connectionCancelled;
+		if (gone) p += `; bei ${gone} fiel einer der beiden Züge aus`;
+		p += `. Als erreichbar gilt ein Umstieg, wenn der Anschlusszug ${MIN_TRANSFER_MIN ? `mindestens ${MIN_TRANSFER_MIN} Minuten nach` : 'nicht vor'} der tatsächlichen Ankunft abfuhr.`;
+		paras.push(p);
+	}
 
 	if (rep.cancelledHalts) {
 		paras.push(`Die DB legte die Streichungen im Mittel ${hours(rep.medianLeadH)} ${rep.medianLeadH < 0 ? 'nach' : 'vor'} der planmäßigen Abfahrt in ihrem System an (Median über ${count(rep.cancelledHalts, 'gestrichenen Halt', 'gestrichene Halte')}). `

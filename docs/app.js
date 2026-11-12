@@ -1,6 +1,6 @@
 // Darstellung der Auswertung. Die Rechenlogik liegt in report.js.
 // Die Versionsnummer zwingt den Browser, nach einer Änderung an report.js die neue Fassung zu laden.
-import {parseCsv, buildReport, buildSummary, OUTCOMES, LATE_FROM, messageLabel} from './report.js?v=5';
+import {parseCsv, buildReport, buildSummary, OUTCOMES, LATE_FROM, messageLabel, TRANSFER_RESULTS} from './report.js?v=6';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...children) => {
@@ -52,8 +52,8 @@ const pct = (a, b) => b ? `${Math.round(a / b * 100)} %` : '–';
 const dirLabel = {N: '→ Nürnberg', S: '→ München'};
 const KEYS = Object.keys(OUTCOMES);
 // Zeichen je Ausgang, damit die Unterscheidung nicht allein an der Farbe hängt
-const MARK = {planned: '✓', treuchtlingen: 'T', gone: '✕', unknown: '?'};
-const SHORT = {planned: 'planmäßig', treuchtlingen: 'endet/beginnt in Treuchtlingen', gone: 'nicht in Treuchtlingen gesehen', unknown: 'Verbleib nicht erfasst'};
+const MARK = {planned: '✓', treuchtlingen: 'T', gone: '✕'};
+const SHORT = {planned: 'planmäßig', treuchtlingen: 'endet/beginnt in Treuchtlingen', gone: 'nicht in Treuchtlingen gesehen'};
 
 const table = (node, head, rows, emptyText) => {
 	node.replaceChildren();
@@ -105,14 +105,13 @@ const renderSummary = (rep) => {
 
 const renderTiles = (rep) => {
 	const o = rep.outcomes, n = rep.cancelledHalts;
-	const rest = o.gone + o.unknown;
 	const tile = (label, value, sub) => el('div', {class: 'tile'},
 		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
 	$('tiles').replaceChildren(
 		tile('Durchgehende Züge', rep.run, rep.upcoming ? `gefahren; dazu ${rep.upcoming} anstehend` : 'gefahren'),
 		tile('davon planmäßig', o.planned, `${pct(o.planned, rep.run)} mit allen Halten`),
 		tile('endeten in Treuchtlingen', o.treuchtlingen, `${pct(o.treuchtlingen, rep.run)}, auch Beginn dort`),
-		tile('Halte gestrichen, sonst', rest, rest ? `${o.gone} nicht gesehen, ${o.unknown} nicht erfasst` : 'kein weiterer Fall'),
+		tile('nicht in Treuchtlingen', o.gone, `${pct(o.gone, rep.run)}; Halte gestrichen, auch dort kein Halt`),
 		tile('Mittlerer Vorlauf', n ? `${Math.abs(rep.medianLeadH) >= 48 ? `${(rep.medianLeadH / 24).toFixed(1)} Tage` : `${rep.medianLeadH.toFixed(1)} h`}`.replace('.', ',') : '–',
 			n ? `Median; ${pct(rep.sameDay, n)} erst am Fahrtag angelegt` : 'noch keine Streichung'),
 	);
@@ -182,6 +181,92 @@ const renderPies = (rep) => {
 	$('pies').replaceChildren(...pieRow('N'), ...pieRow('S'));
 };
 
+// Umstieg in Treuchtlingen; Farben wie bei den Ausgängen, dazu je ein Zeichen
+const T_CLASS = {reached: 'o-planned', missed: 'o-treuchtlingen', feederCancelled: 'o-gone', connectionCancelled: 'o-gone', open: 'o-neutral'};
+const T_MARK = {reached: '✓', missed: '✕', feederCancelled: 'A', connectionCancelled: 'A', open: '?'};
+const signed = (m) => m === null ? '–' : `${m > 0 ? '+' : m < 0 ? '−' : '±'}${Math.abs(m)} min`;
+const hm = (s) => s ? s.slice(11, 16) : '–';
+const transferCsv = (pairs) => {
+	const cell = (v) => /[",\n;]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
+	const head = ['betriebstag', 'richtung', 'durchgehender_zug', 'pendelzug', 'zubringer', 'ankunft_soll', 'ankunft_ist', 'gleis_ankunft',
+		'anschluss', 'abfahrt_soll', 'abfahrt_ist', 'gleis_abfahrt', 'umstieg_soll_min', 'umstieg_ist_min', 'ergebnis', 'pendelzug_erstmals_gesehen'];
+	const lines = pairs.map(p => [p.serviceDate, p.direction, p.through.train, p.shuttle.train, p.from.train, p.arrPlanned, p.arrActual, p.platformArr,
+		p.to.train, p.depPlanned, p.depActual, p.platformDep, p.plannedMin ?? '', p.actualMin ?? '', TRANSFER_RESULTS[p.result], p.shuttleSeen].map(cell).join(','));
+	return [head.join(','), ...lines].join('\n') + '\n';
+};
+
+const renderTransfers = (rep) => {
+	const tr = rep.transfers, n = tr.counts;
+	const tile = (label, value, sub) => el('div', {class: 'tile'},
+		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
+	const cancelled = n.feederCancelled + n.connectionCancelled;
+	const none = 'noch keine gefahrene Verbindung';
+	$('transfer-tiles').replaceChildren(
+		tile('mit Pendelzug', tr.withShuttle, tr.through ? `von ${tr.through} in Treuchtlingen endenden oder beginnenden Zügen` : 'noch kein solcher Zug gefahren'),
+		tile('Umstieg erreicht', n.reached, tr.decided ? `${pct(n.reached, tr.decided)} der ${tr.decided} gefahrenen Verbindungen` : none),
+		tile('Umstieg verpasst', n.missed, tr.decided ? `${pct(n.missed, tr.decided)}; Anschluss fuhr vor der Ankunft ab` : none),
+		tile('Zug ausgefallen', cancelled, n.open ? `dazu ${n.open} noch offen` : 'Zubringer oder Anschluss'),
+		tile('ohne Pendelzug', tr.withoutShuttle, 'durchgehende Züge, die in Treuchtlingen enden oder beginnen'),
+	);
+
+	const items = [['reached', n.reached, 'erreicht'], ['missed', n.missed, 'verpasst'],
+		['feederCancelled', cancelled, 'Zubringer oder Anschluss ausgefallen'], ['open', n.open, 'noch offen']];
+	const shown = items.filter(([, c]) => c).length ? items.filter(([, c]) => c) : items.slice(0, 2);
+	$('transfer-legend').replaceChildren(el('div', {class: 'legend'}, ...shown.map(([k, , label]) =>
+		el('span', {}, el('i', {class: `sw ${T_CLASS[k]}`}, T_MARK[k]), label))));
+
+	// je Verbindung: eine Zeile, eine Spalte je Tag
+	const slotsNode = $('transfer-slots');
+	slotsNode.replaceChildren();
+	const dates = [...new Set(tr.pairs.map(p => p.serviceDate))].sort();
+	if (!tr.slots.length) {
+		slotsNode.append(el('caption', {class: 'empty'}, 'Noch kein Pendelzug in Treuchtlingen erfasst.'));
+	} else {
+		slotsNode.append(el('thead', {}, el('tr', {}, el('th', {}, 'Zubringer → Anschluss'), el('th', {}, 'an → ab'), el('th', {}, 'Gleis'),
+			el('th', {class: 'num'}, 'Soll'), el('th', {class: 'num'}, 'erreicht'),
+			...dates.map(d => el('th', {class: 'c', title: fmtDay(d)}, el('span', {}, wd(d)), el('br'), `${d.slice(8, 10)}.${d.slice(5, 7)}.`)))));
+		const body = el('tbody');
+		for (const dir of ['N', 'S']) {
+			const list = tr.slots.filter(s => s.direction === dir);
+			if (!list.length) continue;
+			body.append(el('tr', {class: 'group'}, el('th', {colspan: String(dates.length + 5)}, `Richtung ${dirLabel[dir].slice(2)}`)));
+			for (const s of list) {
+				const done = s.counts.reached + s.counts.missed + s.counts.feederCancelled + s.counts.connectionCancelled;
+				const shuttle = s.shuttles.join(', ');
+				body.append(el('tr', {},
+					el('td', {}, dir === 'N' ? `${s.through} → ${shuttle}` : `${shuttle} → ${s.through}`),
+					el('td', {class: 'num'}, `${s.arr} → ${s.dep}`), el('td', {}, s.platforms || '–'),
+					el('td', {class: 'num'}, signed(s.plannedMin)),
+					el('td', {class: 'num'}, `${s.counts.reached} von ${done}`),
+					...dates.map(d => {
+						const r = s.byDate[d];
+						return el('td', {class: 'c'}, r
+							? el('span', {class: `cell ${T_CLASS[r]}`, title: `${s.through}, ${fmtDay(d)}: ${TRANSFER_RESULTS[r]}`}, T_MARK[r])
+							: el('span', {class: 'cell none', title: `${fmtDay(d)}: kein Pendelzug`}, '·'));
+					})));
+			}
+		}
+		slotsNode.append(body);
+	}
+
+	table($('transfers'),
+		[['Tag'], ['Zubringer'], ['an Soll', 'num'], ['an Ist', 'num'], ['Gleis'], ['Anschluss'], ['ab Soll', 'num'], ['ab Ist', 'num'], ['Gleis'],
+			['Umstieg Soll', 'num'], ['Umstieg Ist', 'num'], ['Ergebnis'], ['Pendelzug erstmals gesehen']],
+		tr.pairs.map(p => [
+			`${wd(p.serviceDate)} ${fmtDay(p.serviceDate)}`, p.from.train, hm(p.arrPlanned), hm(p.arrActual), p.platformArr || '–',
+			p.to.train, hm(p.depPlanned), hm(p.depActual), p.platformDep || '–',
+			signed(p.plannedMin), signed(p.actualMin),
+			el('span', {}, el('i', {class: `sw ${T_CLASS[p.result]}`}, T_MARK[p.result]), TRANSFER_RESULTS[p.result]),
+			`${fmtTime(p.shuttleSeen)} (${fmtLead(p.shuttleLeadH)})`,
+		]),
+		'Noch kein Umstieg auf einen Pendelzug erfasst.');
+	$('transfer-download').onclick = () => {
+		const a = el('a', {href: URL.createObjectURL(new Blob([transferCsv(tr.pairs)], {type: 'text/csv'})), download: 're1-umstiege-treuchtlingen.csv'});
+		a.click();
+		URL.revokeObjectURL(a.href);
+	};
+};
+
 const renderLead = (rep) => barList($('histogram'), rep.leadHistogram, rep.cancelledHalts, 'Streichungen');
 
 const renderReasons = (rep) => {
@@ -228,7 +313,7 @@ const renderTrains = (rep) => {
 				['Streichung angelegt'], ['Vorlauf', 'num'], ['Meldung'], ['']],
 			rows.map(t => [
 				t.train, dirLabel[t.direction] || '', `${wd(t.serviceDate)} ${fmtTime(t.plannedTime)}`,
-				el('span', {}, el('i', {class: `sw o-${t.outcome}`}, MARK[t.outcome]), t.type === 'pendel' ? (t.cancelled ? 'Pendelzug, Halte gestrichen' : 'Pendelzug') : SHORT[t.outcome]),
+				el('span', {}, el('i', {class: `sw o-${t.outcome}`}, MARK[t.outcome]), t.type === 'pendel' ? `Pendelzug${t.replaces ? ` für ${t.replaces}` : ''}${t.cancelled ? ', Halte gestrichen' : ''}` : SHORT[t.outcome]),
 				...rep.stations.map(s => haltCell(t.halts[s])), ctxCell(t),
 				t.cancelled ? fmtTime(t.createdAt) + (t.exact ? '' : ' *') : '', t.cancelled ? fmtLead(t.leadH) : '',
 				t.messages.map(messageLabel).join(', '),
@@ -243,9 +328,9 @@ const renderTrains = (rep) => {
 
 	$('download').onclick = () => {
 		const cell = (v) => /[",\n;]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
-		const head = ['zug', 'richtung', 'betriebstag', 'abfahrt', 'typ', 'ausgang', ...rep.stations.map(s => `status_${s}`),
+		const head = ['zug', 'richtung', 'betriebstag', 'abfahrt', 'typ', 'pendelzug_fuer', 'ausgang', ...rep.stations.map(s => `status_${s}`),
 			'treuchtlingen', 'streichung_angelegt', 'vorlauf_h', 'verspaetung_min', 'verspaetung_treuchtlingen_min', 'meldungen'];
-		const lines = currentRows.map(t => [t.train, t.direction, t.serviceDate, t.plannedTime, t.type, OUTCOMES[t.outcome],
+		const lines = currentRows.map(t => [t.train, t.direction, t.serviceDate, t.plannedTime, t.type, t.replaces, OUTCOMES[t.outcome],
 			...rep.stations.map(s => t.halts[s]?.status ?? ''), t.context ? (t.context.terminus || t.context.status) : '',
 			t.createdAt, t.leadH ?? '', t.delay ?? '', t.contextDelay ?? '', t.messages.join(' ')].map(cell).join(','));
 		const a = el('a', {href: URL.createObjectURL(new Blob([[head.join(','), ...lines].join('\n') + '\n'], {type: 'text/csv'})), download: 're1-zuege.csv'});
@@ -260,9 +345,6 @@ const renderCoverage = (rep) => {
 	if (!c.start) items.push('Es liegt noch kein Protokoll der Läufe vor.');
 	else {
 		items.push(`Beobachtet seit ${fmtTime(c.start)} Uhr, letzter erfolgreicher Lauf ${fmtTime(c.end)} Uhr, ${c.runs} Läufe, davon ${c.errorRuns} mit Fehlern.`);
-		items.push(rep.contextSince
-			? `Treuchtlingen wird seit ${fmtTime(rep.contextSince)} Uhr mitbeobachtet. Für Züge davor ist der Verbleib nicht erfasst; Gründe und Verspätungen gibt es ebenfalls erst seitdem.`
-			: 'Treuchtlingen wird noch nicht mitbeobachtet; der Verbleib der Züge mit gestrichenen Halten ist deshalb nicht erfasst.');
 		items.push(c.gaps.length
 			? `${c.gaps.length} ${c.gaps.length === 1 ? 'Lücke' : 'Lücken'} von mehr als 90 Minuten zwischen zwei Läufen. ${c.lossy.length ? `${c.lossy.length} davon länger als 18 Stunden: Dort können Züge fehlen.` : 'Keine ist länger als 18 Stunden, es fehlt also kein Zug; die Verspätungen sind in diesen Stunden ungenauer.'}`
 			: 'Keine Lücke von mehr als 90 Minuten zwischen zwei Läufen.');
@@ -287,7 +369,7 @@ try {
 	const render = () => {
 		const rep = buildReport(events, runs, {filter: filterFromForm()});
 		if (rep.allDates.length) { $('f-from').min = $('f-to').min = rep.allDates[0]; $('f-from').max = $('f-to').max = rep.allDates.at(-1); }
-		for (const fn of [renderSummary, renderTiles, renderDays, renderCalendar, renderPies, renderLead, renderReasons, renderDelays, renderTrains, renderCoverage]) fn(rep);
+		for (const fn of [renderSummary, renderTiles, renderDays, renderCalendar, renderPies, renderTransfers, renderLead, renderReasons, renderDelays, renderTrains, renderCoverage]) fn(rep);
 	};
 	for (const id of ['f-from', 'f-to', 'f-days', 'f-hours']) $(id).onchange = render;
 	$('f-reset').onclick = () => { for (const id of ['f-from', 'f-to', 'f-days', 'f-hours']) $(id).value = ''; render(); };

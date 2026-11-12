@@ -6,12 +6,18 @@ Ein GitHub-Actions-Workflow fragt die DB jede Stunde ab und legt die Ergebnisse 
 
 ## Wie es funktioniert
 
-Quelle ist die offizielle **Timetables-API** der DB (intern „IRIS“) aus dem DB API Marketplace. Der Zugang ist kostenlos, braucht aber einen API-Key. Die API kennt nur Bahnhöfe, keine einzelnen Züge. `collect.mjs` lädt deshalb für Roth und Nürnberg Hbf (beobachtete Halte) sowie Treuchtlingen (nur, um den Verbleib umgeleiteter Züge festzustellen)
+Quelle ist die offizielle **Timetables-API** der DB (intern „IRIS“) aus dem DB API Marketplace. Der Zugang ist kostenlos, braucht aber einen API-Key. Die API kennt nur Bahnhöfe, keine einzelnen Züge. `collect.mjs` lädt deshalb für Roth und Nürnberg Hbf (beobachtete Halte) sowie Treuchtlingen (Verbleib umgeleiteter Züge, Umstieg auf Pendelzüge)
 
 1. den **Sollfahrplan** der nächsten 24 Stunden (`/plan`, jede Stundenscheibe nur einmal) und
 2. alle bekannten **Änderungen** (`/fchg`),
 
-filtert die Halte der Linie RE1 heraus und vergleicht sie mit dem letzten Lauf. Halte, die nur in den Änderungen stehen (z. B. der zusätzliche Halt eines umgeleiteten Zuges in Treuchtlingen), werden mit aufgenommen. Jede Änderung landet in `events.csv`, zusammen mit Verspätung (`delay_min`), den Meldungscodes der DB (`messages`) und dem Hinweis, ob der Zug an diesem Halt endet oder beginnt (`terminus`).
+filtert die Halte der Linie RE1 heraus und vergleicht sie mit dem letzten Lauf. Halte, die nur in den Änderungen stehen, werden mit aufgenommen. Das betrifft etwa den zusätzlichen Halt eines umgeleiteten Zuges in Treuchtlingen oder einen kurzfristig eingesetzten Pendelzug Treuchtlingen – Roth – Nürnberg. Jede Änderung landet in `events.csv`, zusammen mit
+- der Verspätung (`delay_min`),
+- den Meldungscodes der DB (`messages`),
+- dem Hinweis, ob der Zug an diesem Halt endet oder beginnt (`terminus`),
+- Ankunft und Abfahrt jeweils als Soll, Ist und Gleis (`arrival_*`, `departure_*`, `platform_*`).
+
+In Treuchtlingen wird jede Änderung der Verspätung ab 1 Minute protokolliert, in Roth und Nürnberg ab 5 Minuten. In Treuchtlingen entscheidet jede Minute darüber, ob der Umstieg klappt.
 
 Nach der Sollzeit verfolgt der Sammler einen Halt noch bis zu 6 Stunden weiter, solange die API ihn liefert; so wird die Endverspätung erfasst. Ein Halt in Roth oder Nürnberg, der erst nach seiner Abfahrt auftaucht, wird dagegen nicht aufgenommen, weil die DB den Anlagezeitpunkt einer Streichung manchmal nachträglich aktualisiert.
 
@@ -26,8 +32,7 @@ Zu jeder Streichung liefert die API das Feld `clt`: den Zeitpunkt, zu dem die DB
 | `HALT_TEILWEISE_GESTRICHEN` | Nur Ankunft oder nur Abfahrt ist gestrichen (Zug endet oder beginnt hier) |
 | `HALT_WIEDERHERGESTELLT` | Streichung zurückgenommen |
 | `LAUFWEG_GEAENDERT` | Geänderter Laufweg bei gleichem Status, z. B. Zug endet nun hier |
-| `VERSPAETUNG` | Verspätung hat sich seit dem letzten Eintrag um mindestens 5 Minuten geändert |
-| `DATEN_ERGAENZT` | Einmalig beim Umstieg auf die aktuelle Programmversion: Halt um Verspätung, Meldungen und Laufweg ergänzt |
+| `VERSPAETUNG` | Verspätung hat sich seit dem letzten Eintrag um mindestens 5 Minuten geändert (Treuchtlingen: 1 Minute) |
 
 ### Warum nicht bahn.de?
 
@@ -48,12 +53,13 @@ Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` 
 - eine **Zusammenfassung** als Fließtext zum Kopieren, mit Gegenüberstellung von Ankündigung und Beobachtung, und eine Druckfassung („Drucken / als PDF speichern“);
 - einen Abschnitt **Strecke und Sperrung** mit der Presseinformation der DB vom 09.10.2026 und Presseberichten als Quellen;
 - Kennzahlen, Züge pro Tag, einen **Kalender** (jeder Zug an jedem Tag) und Kreisdiagramme je Zug;
+- den **Umstieg in Treuchtlingen**: welche Züge einen Pendelzug hatten, ob der Umstieg erreichbar war (je Verbindung und Tag), geplante und tatsächliche Umstiegszeit, Gleise (auch als CSV);
 - Vorlauf der Streichungen, gemeldete **Gründe**, **Verspätungen**;
 - eine Tabelle aller Züge (auch als CSV herunterladbar), **Datenqualität** (Erfassungslücken) und **Methodik**.
 
 Ein Filter für Zeitraum, Wochentage und Hauptverkehrszeit wirkt auf alle Abschnitte.
 
-**Begriffe:** *Durchgehender Zug* – Laufweg laut Fahrplan über München oder Ingolstadt. *Pendelzug* – nur Treuchtlingen–Nürnberg, wird getrennt gezählt. *Planmäßig* – kein Halt in Roth oder Nürnberg Hbf gestrichen. *Endet/beginnt in Treuchtlingen* – Halte gestrichen, Zug hält aber in Treuchtlingen.
+**Begriffe:** *Durchgehender Zug* – Laufweg laut Fahrplan über München oder Ingolstadt. *Pendelzug* – nur Treuchtlingen–Nürnberg, wird getrennt gezählt. *Planmäßig* – kein Halt in Roth oder Nürnberg Hbf gestrichen. *Endet/beginnt in Treuchtlingen* – Halte gestrichen, Zug hält aber in Treuchtlingen. *Umstieg* – Jedem in Treuchtlingen endenden (bzw. beginnenden) durchgehenden Zug wird der Pendelzug derselben Richtung mit der nächstgelegenen Sollzeit zugeordnet, höchstens 30 Minuten entfernt. Pendelzüge erkennt das Tool selbst, Zugnummern sind nicht hinterlegt. *Erreichbar* heißt: Der Anschlusszug fuhr laut letzter Meldung der DB nicht vor der Ankunft des Zubringers ab (Mindestumstiegszeit 0 Minuten, `MIN_TRANSFER_MIN` in `docs/report.js`).
 
 **Meldungscodes:** Die DB veröffentlicht keine Liste. Die Klartexte stammen aus dem Open-Source-Projekt [Travel::Status::DE::IRIS](https://github.com/derf/Travel-Status-DE-IRIS) und sind nicht amtlich.
 
@@ -112,7 +118,8 @@ Schalte in diesem Fall den Workflow unter *Actions* ab, damit nicht zwei Sammler
 
 - Der Sollfahrplan ist nur rund einen Tag im Voraus abrufbar. Das Tool belegt also, wann eine Streichung angelegt wurde, aber nicht, dass der Halt schon Tage vorher im Fahrplan stand. Wie weit die API tatsächlich vorausreicht, zeigt jeder Lauf im Log („Sollfahrplan bis +… h“).
 - Änderungen erfasst das Tool bis höchstens 6 Stunden nach der Sollzeit und nur, solange die API sie liefert; danach bleibt der letzte Stand stehen.
-- Verbleib, Meldungen und Verspätungen gibt es erst ab dem 12.11.2026 (Beobachtung von Treuchtlingen). Ältere Züge mit gestrichenen Halten erscheinen als „Verbleib nicht erfasst“.
+- Die Aufzeichnung beginnt am 12.11.2026. Züge davor sind nicht erfasst; eine erste Testphase vom selben Tag wurde verworfen.
+- Die Ist-Zeit eines Umstiegs ist die letzte Meldung der DB, die der stündliche Sammler gesehen hat. Liefert die API einen Zug nach seiner Abfahrt nicht mehr, kann das eine Prognose von bis zu einer Stunde vor der Abfahrt sein.
 - Fehlt bei einer Streichung das Feld `clt`, steht in der Auswertung der Zeitpunkt des ersten Abrufs (mit `*` markiert, Genauigkeit eine Stunde).
 - Läuft der Sammler länger als etwa einen Tag nicht, fehlen die Halte dieser Zeit.
 - GitHub schaltet geplante Workflows ab, wenn ein Repository 60 Tage lang keine Aktivität zeigt.
