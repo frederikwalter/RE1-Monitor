@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {parseCsv} from './docs/report.js';
 
 export const ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const DATA = process.env.RE1_DATA_DIR || path.join(ROOT, 'data');
@@ -28,12 +29,22 @@ const csvCell = (v) => {
 	return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
+// Hängt Zeilen an. Hat eine vorhandene Datei eine andere Kopfzeile (ältere Programmversion), wird sie
+// einmalig auf die neue umgeschrieben; die Werte werden über die Spaltennamen zugeordnet.
 export const appendCsv = (file, header, rows) => {
 	if (!rows.length) return;
 	ensureDir(path.dirname(file));
-	const exists = fs.existsSync(file);
-	const lines = rows.map(r => header.map(h => csvCell(r[h])).join(','));
-	fs.appendFileSync(file, (exists ? '' : header.join(',') + '\n') + lines.join('\n') + '\n');
+	const line = (r) => header.map(h => csvCell(r[h])).join(',');
+	let exists = fs.existsSync(file);
+	if (exists) {
+		const text = fs.readFileSync(file, 'utf8');
+		if (text.slice(0, text.indexOf('\n')).trim() !== header.join(',')) {
+			const tmp = `${file}.${process.pid}.tmp`;
+			fs.writeFileSync(tmp, [header.join(','), ...parseCsv(text).map(line)].join('\n') + '\n');
+			fs.renameSync(tmp, file);
+		}
+	}
+	fs.appendFileSync(file, (exists ? '' : header.join(',') + '\n') + rows.map(line).join('\n') + '\n');
 };
 
 export const appendJsonl = (file, obj) => {

@@ -2,6 +2,7 @@
   "baseUrl": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1",
 
   "stations": ["Roth", "Nürnberg Hbf"],
+  "contextStations": ["Treuchtlingen"],
   "categories": ["RE", "RB"],
   "line": "RE1",
   "pathRegex": "München|Ingolstadt|Treuchtlingen",

@@ -1,19 +1,19 @@
 # RE1-Monitor
 
-Dieses Tool dokumentiert, **wann** die DB Halte des RE1 (München – Ingolstadt – Treuchtlingen – Nürnberg) streicht. Es geht um die Bauphase auf der Schnellfahrstrecke vom 30.10. bis 12.12.2026.
-
-**These:** Die Halte in Roth und Nürnberg Hbf stehen im Fahrplan und werden erst am Tag der Fahrt gestrichen.
+Dieses Tool sammelt Belege dafür, wie der RE1 (München – Ingolstadt – Nürnberg) während der Sperrung der Schnellfahrstrecke vom 30.10. bis 12.12.2026 tatsächlich fährt: Wie viele Züge halten wie geplant in Roth und Nürnberg Hbf, wie viele enden stattdessen in Treuchtlingen, wie kurzfristig streicht die DB die Halte, und wie verspätet sind die Züge? Ziel ist eine belastbare Grundlage für eine Beschwerde.
 
 Ein GitHub-Actions-Workflow fragt die DB jede Stunde ab und legt die Ergebnisse auf dem Branch `data` ab. Die Auswertung steht als Webseite bereit: <https://frederikwalter.github.io/RE1-Monitor/>
 
 ## Wie es funktioniert
 
-Quelle ist die offizielle **Timetables-API** der DB (intern „IRIS“) aus dem DB API Marketplace. Der Zugang ist kostenlos, braucht aber einen API-Key. Die API kennt nur Bahnhöfe, keine einzelnen Züge. `collect.mjs` lädt deshalb für Roth und Nürnberg Hbf
+Quelle ist die offizielle **Timetables-API** der DB (intern „IRIS“) aus dem DB API Marketplace. Der Zugang ist kostenlos, braucht aber einen API-Key. Die API kennt nur Bahnhöfe, keine einzelnen Züge. `collect.mjs` lädt deshalb für Roth und Nürnberg Hbf (beobachtete Halte) sowie Treuchtlingen (nur, um den Verbleib umgeleiteter Züge festzustellen)
 
 1. den **Sollfahrplan** der nächsten 24 Stunden (`/plan`, jede Stundenscheibe nur einmal) und
 2. alle bekannten **Änderungen** (`/fchg`),
 
-filtert die Halte der Linie RE1 heraus und vergleicht ihren Status mit dem letzten Lauf. Jede Änderung landet in `events.csv`.
+filtert die Halte der Linie RE1 heraus und vergleicht sie mit dem letzten Lauf. Halte, die nur in den Änderungen stehen (z. B. der zusätzliche Halt eines umgeleiteten Zuges in Treuchtlingen), werden mit aufgenommen. Jede Änderung landet in `events.csv`, zusammen mit Verspätung (`delay_min`), den Meldungscodes der DB (`messages`) und dem Hinweis, ob der Zug an diesem Halt endet oder beginnt (`terminus`).
+
+Nach der Sollzeit verfolgt der Sammler einen Halt noch bis zu 6 Stunden weiter, solange die API ihn liefert; so wird die Endverspätung erfasst. Ein Halt in Roth oder Nürnberg, der erst nach seiner Abfahrt auftaucht, wird dagegen nicht aufgenommen, weil die DB den Anlagezeitpunkt einer Streichung manchmal nachträglich aktualisiert.
 
 Zu jeder Streichung liefert die API das Feld `clt`: den Zeitpunkt, zu dem die DB die Streichung in ihrem System angelegt hat. Der Vorlauf (`lead_time_h`) ist der Abstand zwischen diesem Zeitpunkt und der planmäßigen Abfahrt. Er hängt nicht davon ab, wann das Skript läuft.
 
@@ -25,7 +25,9 @@ Zu jeder Streichung liefert die API das Feld `clt`: den Zeitpunkt, zu dem die DB
 | `HALT_GESTRICHEN` | Ankunft und Abfahrt sind gestrichen |
 | `HALT_TEILWEISE_GESTRICHEN` | Nur Ankunft oder nur Abfahrt ist gestrichen (Zug endet oder beginnt hier) |
 | `HALT_WIEDERHERGESTELLT` | Streichung zurückgenommen |
-| `LAUFWEG_GEAENDERT` | Geänderter Laufweg bei gleichem Status |
+| `LAUFWEG_GEAENDERT` | Geänderter Laufweg bei gleichem Status, z. B. Zug endet nun hier |
+| `VERSPAETUNG` | Verspätung hat sich seit dem letzten Eintrag um mindestens 5 Minuten geändert |
+| `DATEN_ERGAENZT` | Einmalig beim Umstieg auf die aktuelle Programmversion: Halt um Verspätung, Meldungen und Laufweg ergänzt |
 
 ### Warum nicht bahn.de?
 
@@ -41,7 +43,19 @@ Die erste Fassung fragte die Schnittstelle von bahn.de / DB Navigator ab, weil s
 
 ## Auswertung
 
-Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` und rechnet im Browser. Sie zeigt, wie viele Züge planmäßig und wie viele mit gestrichenen Halten gefahren sind (gesamt, pro Tag und je Zug im Tagesverlauf), die Verteilung des Vorlaufs, eine Liste aller Züge und den Zustand des Sammlers. Ein Zug gilt als planmäßig, wenn keiner seiner Halte in Roth und Nürnberg Hbf gestrichen wurde. Die Rechenlogik liegt in `docs/report.js`.
+Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` und rechnet im Browser (Darstellung in `docs/app.js`, Rechenlogik in `docs/report.js`). Sie enthält:
+
+- eine **Zusammenfassung** als Fließtext zum Kopieren, mit Gegenüberstellung von Ankündigung und Beobachtung, und eine Druckfassung („Drucken / als PDF speichern“);
+- einen Abschnitt **Strecke und Sperrung** mit der Presseinformation der DB vom 09.10.2026 und Presseberichten als Quellen;
+- Kennzahlen, Züge pro Tag, einen **Kalender** (jeder Zug an jedem Tag) und Kreisdiagramme je Zug;
+- Vorlauf der Streichungen, gemeldete **Gründe**, **Verspätungen**;
+- eine Tabelle aller Züge (auch als CSV herunterladbar), **Datenqualität** (Erfassungslücken) und **Methodik**.
+
+Ein Filter für Zeitraum, Wochentage und Hauptverkehrszeit wirkt auf alle Abschnitte.
+
+**Begriffe:** *Durchgehender Zug* – Laufweg laut Fahrplan über München oder Ingolstadt. *Pendelzug* – nur Treuchtlingen–Nürnberg, wird getrennt gezählt. *Planmäßig* – kein Halt in Roth oder Nürnberg Hbf gestrichen. *Endet/beginnt in Treuchtlingen* – Halte gestrichen, Zug hält aber in Treuchtlingen.
+
+**Meldungscodes:** Die DB veröffentlicht keine Liste. Die Klartexte stammen aus dem Open-Source-Projekt [Travel::Status::DE::IRIS](https://github.com/derf/Travel-Status-DE-IRIS) und sind nicht amtlich.
 
 Lokal ansehen (aus dem Repo-Ordner, mit Daten in `data/`):
 
@@ -97,7 +111,12 @@ Schalte in diesem Fall den Workflow unter *Actions* ab, damit nicht zwei Sammler
 ## Grenzen
 
 - Der Sollfahrplan ist nur rund einen Tag im Voraus abrufbar. Das Tool belegt also, wann eine Streichung angelegt wurde, aber nicht, dass der Halt schon Tage vorher im Fahrplan stand. Wie weit die API tatsächlich vorausreicht, zeigt jeder Lauf im Log („Sollfahrplan bis +… h“).
-- Streichungen, die erst nach der planmäßigen Abfahrt angelegt werden, erfasst das Tool nicht. Die API entfernt alte Änderungen wieder; vergangene Halte bleiben deshalb auf ihrem letzten Stand.
+- Änderungen erfasst das Tool bis höchstens 6 Stunden nach der Sollzeit und nur, solange die API sie liefert; danach bleibt der letzte Stand stehen.
+- Verbleib, Meldungen und Verspätungen gibt es erst ab dem 12.11.2026 (Beobachtung von Treuchtlingen). Ältere Züge mit gestrichenen Halten erscheinen als „Verbleib nicht erfasst“.
 - Fehlt bei einer Streichung das Feld `clt`, steht in der Auswertung der Zeitpunkt des ersten Abrufs (mit `*` markiert, Genauigkeit eine Stunde).
 - Läuft der Sammler länger als etwa einen Tag nicht, fehlen die Halte dieser Zeit.
 - GitHub schaltet geplante Workflows ab, wenn ein Repository 60 Tage lang keine Aktivität zeigt.
+
+## Beschwerde
+
+Der RE1 gehört zum Verkehrsvertrag „München-Nürnberg-Express/Ringzug West“. Besteller ist die **Bayerische Eisenbahngesellschaft (BEG)** im Auftrag des Freistaats Bayern, Betreiber ist **DB Regio Bayern**. Ein fester Beschwerdeweg mit vorgegebenen Nachweisen ist öffentlich nicht beschrieben; den passenden Kanal findest du auf den Seiten der BEG und von DB Regio. Als Anlage eignen sich die Druckfassung der Seite und die CSV-Datei aus der Tabelle „Alle Züge“.

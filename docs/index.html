@@ -9,7 +9,9 @@
 	color-scheme: light;
 	--page: #f4f3f0; --surface: #fcfcfb; --border: #e2e0da;
 	--text: #0b0b0b; --text-2: #52514e; --text-3: #7a7872;
-	--bar: #2a78d6; --bar-2: #eb6834; --bar-track: #ecebe6;
+	--bar: #2a78d6; --bar-track: #ecebe6;
+	/* Ausgänge: validiert mit dem dataviz-Prüfskript (CVD-Abstand ≥ 24, Kontrast ≥ 3:1) */
+	--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-unknown: #a8a69f;
 	--good: #0ca30c; --critical: #d03b3b; --warning: #fab219;
 }
 @media (prefers-color-scheme: dark) {
@@ -17,7 +19,8 @@
 		color-scheme: dark;
 		--page: #111110; --surface: #1a1a19; --border: #33332f;
 		--text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e85;
-		--bar: #3987e5; --bar-2: #d95926; --bar-track: #262624;
+		--bar: #3987e5; --bar-track: #262624;
+		--o-planned: #3987e5; --o-treuchtlingen: #d95926; --o-gone: #9085e9; --o-unknown: #5c5b56;
 	}
 }
 * { box-sizing: border-box; }
@@ -25,58 +28,90 @@ body {
 	margin: 0; background: var(--page); color: var(--text);
 	font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-main { max-width: 1000px; margin: 0 auto; padding: 32px 16px 64px; }
+main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; overflow-wrap: break-word; }
+section { min-width: 0; }
+@media (max-width: 600px) { section { padding: 16px 12px; } .bars .name { white-space: normal; } }
 h1 { font-size: 26px; margin: 0 0 4px; }
 h2 { font-size: 17px; margin: 0 0 4px; }
+h3 { font-size: 14px; margin: 16px 0 2px; }
 p { margin: 0; }
-.lead { color: var(--text-2); max-width: 70ch; }
-.note { color: var(--text-3); font-size: 13px; }
-section, .tile {
-	background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-}
+.lead { color: var(--text-2); max-width: 75ch; }
+.note { color: var(--text-3); font-size: 13px; max-width: 90ch; }
+section, .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
 section { padding: 20px; margin-top: 16px; }
 .status { margin-top: 16px; font-size: 13px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+
+.filterbar { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+label { font-size: 13px; color: var(--text-2); }
+select, input[type=date], button {
+	font: inherit; font-size: 14px; color: var(--text); background: var(--surface);
+	border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; margin-left: 4px;
+}
+button { cursor: pointer; margin-left: 0; }
+button:hover { border-color: var(--text-3); }
+
+.summary p { margin-top: 10px; max-width: 85ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+#print-meta { display: none; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 12px; margin-top: 16px; }
 .tile { padding: 16px; }
 .tile .label { color: var(--text-2); font-size: 13px; }
-.tile .value { font-size: 34px; font-weight: 650; line-height: 1.15; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.tile .value { font-size: 32px; font-weight: 650; line-height: 1.15; margin-top: 6px; font-variant-numeric: tabular-nums; }
 .tile .sub { color: var(--text-3); font-size: 13px; }
 
 .bars { margin-top: 16px; display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 12px; align-items: center; }
 .bars .name { color: var(--text-2); font-size: 13px; white-space: nowrap; }
 .bars .track { background: var(--bar-track); border-radius: 4px; height: 18px; }
-.bars .fill { background: var(--bar); height: 100%; border-radius: 0 4px 4px 0; min-width: 0; transition: opacity .1s; }
+.bars .fill { background: var(--bar); height: 100%; border-radius: 0 4px 4px 0; }
 .bars .row { display: contents; }
-.bars .row:hover .fill { opacity: .8; }
-.bars .num { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
-.bars .day-split { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 2px 0; }
-
+.bars .row:hover .fill, .bars .row:hover .stack { opacity: .8; }
+.bars .num { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; white-space: nowrap; }
 .stack { display: flex; gap: 2px; height: 18px; }
 .stack div { min-width: 0; }
-.stack .a { background: var(--bar); border-radius: 4px 0 0 4px; }
-.stack .b { background: var(--bar-2); border-radius: 0 4px 4px 0; }
-.stack .a:only-child, .stack .b:only-child { border-radius: 4px; }
+.stack div:first-child { border-radius: 4px 0 0 4px; }
+.stack div:last-child { border-radius: 0 4px 4px 0; }
+.stack div:only-child { border-radius: 4px; }
+
+.o-planned { background: var(--o-planned); }
+.o-treuchtlingen { background: var(--o-treuchtlingen); }
+.o-gone { background: var(--o-gone); }
+.o-unknown { background: var(--o-unknown); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
-.muted { color: var(--text-3); }
-.pies { margin-top: 16px; display: grid; grid-template-columns: max-content 1fr; gap: 16px 16px; align-items: center; }
+.sw {
+	display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 3px;
+	margin-right: 6px; color: #fff; font-style: normal; font-size: 11px; font-weight: 700; vertical-align: -3px;
+}
+
+table.calendar { width: auto; }
+.calendar td, .calendar th { padding-right: 16px; }
+.calendar td.c, .calendar th.c { text-align: center; padding: 3px 2px; min-width: 30px; }
+.calendar th.c { font-size: 11px; line-height: 1.2; }
+.calendar th.c span { color: var(--text-3); }
+.calendar tr.group th { padding-top: 14px; color: var(--text); font-weight: 600; text-align: left; }
+.cell {
+	display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 20px; border-radius: 4px;
+	color: #fff; font-size: 11px; font-weight: 700;
+}
+.cell.none { color: var(--text-3); background: none; }
+
+.pies { margin-top: 16px; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 16px; align-items: center; }
 .pies .dir { font-size: 13px; color: var(--text-2); white-space: nowrap; }
 .pies .line { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 4px; }
 .pie { flex: none; text-align: center; font-size: 12px; line-height: 1.35; color: var(--text-2); }
 .pie svg { display: block; margin: 0 auto 4px; }
 .pie .t { color: var(--text); font-variant-numeric: tabular-nums; font-size: 13px; }
 .pie .c { font-variant-numeric: tabular-nums; }
-.pie circle.a, .pie path.a { fill: var(--bar); }
-.pie circle.b, .pie path.b { fill: var(--bar-2); }
+.pie .a { fill: var(--o-planned); }
+.pie .b { fill: var(--o-treuchtlingen); }
 .pie path { stroke: var(--surface); stroke-width: 2; stroke-linejoin: round; }
-.pie:hover svg { opacity: .8; }
-.filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
-label { font-size: 13px; color: var(--text-2); }
-select {
-	font: inherit; color: var(--text); background: var(--surface);
-	border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; margin-left: 4px;
-}
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; }
+.cols > * { min-width: 0; }
+.cols > section { margin-top: 16px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; align-items: center; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -84,221 +119,154 @@ th { color: var(--text-2); font-weight: 500; font-size: 13px; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tag + .tag { margin-left: 6px; }
 .tag { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--text-2); }
-.empty { color: var(--text-3); padding: 12px 0; }
+.muted { color: var(--text-3); }
+.empty { color: var(--text-3); padding: 12px 0; text-align: left; }
 #error { border-color: var(--critical); }
 a { color: inherit; }
+.prose p, .prose li { max-width: 85ch; }
+.prose p { margin-top: 10px; }
+.prose ul { margin: 8px 0 0; padding-left: 20px; }
+.prose li { margin-top: 4px; }
+blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid var(--border); color: var(--text-2); max-width: 85ch; }
+.sources li { font-size: 14px; }
+
+@media print {
+	:root {
+		color-scheme: light;
+		--page: #fff; --surface: #fff; --border: #d4d2cc; --text: #000; --text-2: #333; --text-3: #555;
+		--bar: #2a78d6; --bar-track: #eee;
+		--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-unknown: #a8a69f;
+	}
+	* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	body { font-size: 11pt; }
+	main { max-width: none; padding: 0; }
+	.filterbar, .actions, .filters, #status { display: none !important; }
+	#print-meta { display: block; color: var(--text-2); font-size: 10pt; margin-top: 4px; }
+	section, .tile { border: none; padding: 0; break-inside: avoid; }
+	section { margin-top: 18pt; }
+	section.long { break-inside: auto; }
+	.scroll, .pies .line { overflow: visible; }
+	.pies .line { flex-wrap: wrap; }
+	th, td { white-space: normal; padding: 3pt 6pt 3pt 0; font-size: 9pt; }
+	a { text-decoration: none; }
+	.sources a::after { content: " (" attr(href) ")"; font-size: 8pt; color: var(--text-3); word-break: break-all; }
+}
 </style>
 </head>
 <body>
 <main>
 	<h1>RE1-Monitor</h1>
-	<p class="lead">Wie viele Züge des RE1 fahren planmäßig über Roth und Nürnberg Hbf, bei wie vielen streicht die DB diese Halte, und wie lange vor der Abfahrt legt sie die Streichung an?</p>
+	<p class="lead">Wie viele Züge des RE1 fahren während der Sperrung der Schnellfahrstrecke wie geplant über Roth bis Nürnberg, wie viele enden vorher in Treuchtlingen, und wie kurzfristig streicht die DB die Halte?</p>
+	<div id="print-meta"></div>
 	<div class="status" id="status">Daten werden geladen …</div>
 
 	<section id="error" hidden></section>
 
 	<div id="content" hidden>
+		<div class="filterbar">
+			<label>Von <input type="date" id="f-from"></label>
+			<label>Bis <input type="date" id="f-to"></label>
+			<label>Tage <select id="f-days"><option value="">alle</option><option value="werktags">Mo–Fr</option><option value="wochenende">Sa–So</option></select></label>
+			<label>Abfahrt <select id="f-hours"><option value="">ganztägig</option><option value="hvz">6–9 und 16–19 Uhr</option></select></label>
+			<button id="f-reset" type="button">Zurücksetzen</button>
+		</div>
+
+		<section class="summary">
+			<h2>Zusammenfassung</h2>
+			<div id="summary"></div>
+			<div class="actions">
+				<button id="copy" type="button">Text kopieren</button>
+				<button id="print" type="button">Drucken / als PDF speichern</button>
+			</div>
+		</section>
+
+		<section class="prose">
+			<h2>Strecke und Sperrung</h2>
+			<p>Der RE1 („München-Nürnberg-Express“) verbindet München über Ingolstadt mit Nürnberg und fährt dort im Regelbetrieb über die Schnellfahrstrecke Nürnberg–Ingolstadt. Bestellt wird er von der Bayerischen Eisenbahngesellschaft (BEG) im Auftrag des Freistaats, betrieben von DB Regio Bayern.</p>
+			<p>Die DB InfraGO sperrt diese Strecke <strong>vom 30. Oktober 2026, 22 Uhr, bis einschließlich 12. Dezember 2026</strong> vollständig. Zwischen Allersberg, Kinding und Ingolstadt Nord werden mehr als 160 Kilometer Schienen erneuert, dazu Weichen getauscht, Kabel verlegt, Tunnel inspiziert und Entwässerungsanlagen gereinigt.</p>
+			<p>Zum RE1 heißt es in der Presseinformation der DB vom 9. Oktober 2026:</p>
+			<blockquote>„Die Züge des RE1 (München – Ingolstadt – Nürnberg) werden über Treuchtlingen (via Ingolstadt) bzw. Augsburg umgeleitet.“</blockquote>
+			<p>Zwischen Nürnberg und Ingolstadt fahren laut derselben Mitteilung Ersatzbusse mit Halt in Allersberg, Allersberg (Rothsee) Johannisbrücke, Kinding, Kinding Marktplatz und Ingolstadt Nord. Roth, die Start- und Endpunkte einzelner Züge und Fahrzeiten nennt die Mitteilung nicht.</p>
+			<p>Nur aus Presseberichten (dpa) stammen: Kosten von rund 70 Millionen Euro, eine etwa doppelt so lange Fahrzeit der Ersatzbusse sowie die Aussage einer Bahnsprecherin: „Daher erwarten wir keine generellen zusätzlichen Verspätungen aufgrund der Umleitung.“</p>
+			<h3>Quellen</h3>
+			<ul class="sources">
+				<li>Deutsche Bahn, Presseinformation, 09.10.2026: <a href="https://www.deutschebahn.com/de/presse/presse-regional/pr-muenchen-de/aktuell/presseinformationen/DB-InfraGO-modernisiert-Schnellfahrstrecke-zwischen-Nuernberg-und-Ingolstadt-14064532">DB InfraGO modernisiert Schnellfahrstrecke zwischen Nürnberg und Ingolstadt</a> (Hauptquelle)</li>
+				<li>IN-direkt, 10.10.2026: <a href="https://in-direkt.de/aktuell/95236/bahnstrecke-ingolstadt-nuernberg-sechs-wochen-vollsperrung-umleitung-sev/">Sperrung Bahnstrecke Ingolstadt–Nürnberg – SEV und Umleitungen</a></li>
+				<li>nordbayern.de, 30.10.2026: <a href="https://www.nordbayern.de/service/mobilitaet/wichtige-schnelltrasse-wochenlang-gesperrt-rep-2-1.15309863">Bahn kündigt Sperrung auf wichtiger Achse über Nürnberg an</a></li>
+				<li>t-online / dpa, 30.10.2026: <a href="https://nuernberg.t-online.de/region/nuernberg/id_101504444/nuernberg-bahn-strecke-nach-ingolstadt-wochenlang-gesperrt-zug-umleitung.html">Nürnberg: Bahn-Strecke nach Ingolstadt wochenlang gesperrt</a></li>
+			</ul>
+		</section>
+
 		<div class="tiles" id="tiles"></div>
 
 		<section>
-			<h2>Gefahrene Züge pro Tag</h2>
-			<p class="note">Ein Zug gilt als planmäßig, wenn keiner seiner Halte in Roth und Nürnberg Hbf gestrichen wurde. Gezählt werden nur Züge, deren Abfahrt schon vorbei ist.</p>
-			<div class="legend"><span><i style="background:var(--bar)"></i>planmäßig</span><span><i style="background:var(--bar-2)"></i>mit gestrichenen Halten</span></div>
+			<h2>Durchgehende Züge pro Tag</h2>
+			<p class="note">Züge, die laut Sollfahrplan zwischen München bzw. Ingolstadt und Nürnberg über Roth fahren. Planmäßig heißt: kein Halt in Roth oder Nürnberg Hbf gestrichen. Gezählt werden nur Züge, deren Abfahrt vorbei ist. Pendelzüge zwischen Treuchtlingen und Nürnberg sind nicht enthalten.</p>
+			<div id="days-legend"></div>
 			<div class="bars" id="days"></div>
 		</section>
 
+		<section class="long">
+			<h2>Kalender: jeder Zug an jedem Tag</h2>
+			<p class="note">Eine Zeile je Zugnummer, sortiert nach üblicher Abfahrtszeit am ersten beobachteten Halt. Ein Punkt heißt: an diesem Tag nicht beobachtet.</p>
+			<div id="calendar-legend"></div>
+			<div class="scroll"><table class="calendar" id="calendar"></table></div>
+		</section>
+
 		<section>
-			<h2>Jeder Zug im Tagesverlauf</h2>
-			<p class="note">Ein Kreis je Zug, sortiert nach Abfahrtszeit: An wie vielen Tagen fuhr er planmäßig, an wie vielen mit gestrichenen Halten? Unter dem Kreis stehen beide Zahlen (planmäßig / gestrichen).</p>
-			<div class="legend"><span><i style="background:var(--bar)"></i>planmäßig</span><span><i style="background:var(--bar-2)"></i>mit gestrichenen Halten</span></div>
+			<h2>Jeder Zug im Überblick</h2>
+			<p class="note">Ein Kreis je Zug, sortiert nach Abfahrtszeit: an wie vielen Tagen planmäßig (blau) und an wie vielen mit gestrichenen Halten (orange). Darunter beide Zahlen.</p>
 			<div class="pies" id="pies"></div>
 		</section>
 
-		<section>
-			<h2>Wie lange vor der Sollzeit wurde gestrichen?</h2>
-			<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der Timetables-API), und der planmäßigen Abfahrt am Halt. Gezählt wird jeder gestrichene Halt.</p>
-			<div class="bars" id="histogram"></div>
-		</section>
+		<div class="cols">
+			<section>
+				<h2>Wie lange vor der Abfahrt wurde gestrichen?</h2>
+				<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der API), und der planmäßigen Abfahrt. Jeder gestrichene Halt zählt einzeln.</p>
+				<div class="bars" id="histogram"></div>
+			</section>
+			<section>
+				<h2>Gemeldeter Grund</h2>
+				<p class="note">Meldungen der DB zu den gestrichenen Halten. Die DB veröffentlicht keine Liste der Codes; die Klartexte stammen aus dem Open-Source-Projekt <a href="https://github.com/derf/Travel-Status-DE-IRIS">Travel::Status::DE::IRIS</a> und sind nicht amtlich. Ein Halt kann mehrere Meldungen tragen.</p>
+				<div class="bars" id="reasons"></div>
+			</section>
+		</div>
 
 		<section>
+			<h2>Verspätungen</h2>
+			<p class="note">Letzter gemeldeter Stand je Halt, ab 6 Minuten als verspätet gezählt. Der Sammler läuft stündlich; Änderungen in der letzten Stunde vor der Abfahrt erfasst er nur, solange die API den Halt danach noch liefert.</p>
+			<div class="cols" id="delays"></div>
+		</section>
+
+		<section class="long">
 			<h2>Alle Züge</h2>
 			<div class="filters">
-				<label>Status <select id="f-status"></select></label>
+				<label>Ausgang <select id="f-status"></select></label>
 				<label>Betriebstag <select id="f-day"></select></label>
+				<button id="download" type="button">Als CSV herunterladen</button>
 			</div>
 			<div class="scroll"><table id="trains"></table></div>
 			<p class="note" id="footnote" hidden>* Die DB hat keinen Anlagezeitpunkt geliefert; angegeben ist der erste Abruf, bei dem die Streichung sichtbar war.</p>
 		</section>
 
+		<section class="prose">
+			<h2>Datenqualität</h2>
+			<ul id="coverage"></ul>
+			<div class="scroll"><table id="gaps" hidden></table></div>
+		</section>
+
+		<section class="prose">
+			<h2>Methodik</h2>
+			<ul>
+				<li><strong>Quelle:</strong> offizielle Timetables-API der Deutschen Bahn (DB API Marketplace), stündlich abgefragt für Roth, Nürnberg Hbf und Treuchtlingen. Die API liefert den Sollfahrplan rund 18 Stunden im Voraus und alle Änderungen daran.</li>
+				<li><strong>Durchgehender Zug:</strong> Laut Fahrplan führt der Laufweg über München oder Ingolstadt. <strong>Pendelzug:</strong> fährt nur zwischen Treuchtlingen und Nürnberg; er wird getrennt gezählt.</li>
+				<li><strong>Planmäßig:</strong> Kein Halt des Zuges in Roth oder Nürnberg Hbf ist gestrichen. <strong>Endet/beginnt in Treuchtlingen:</strong> Halte gestrichen, der Zug hält aber in Treuchtlingen. <strong>Nicht in Treuchtlingen gesehen:</strong> Halte gestrichen und auch kein Halt in Treuchtlingen.</li>
+				<li><strong>Zeitpunkt der Streichung:</strong> Feld <code>clt</code> der API, also wann die DB die Streichung in ihrem System angelegt hat. Er hängt nicht vom Abfragezeitpunkt ab.</li>
+				<li><strong>Beweissicherung:</strong> Zu jeder Änderung wird die Antwort der API im Wortlaut gespeichert. <span id="raw-links"></span></li>
+			</ul>
+		</section>
 	</div>
 </main>
-
-<script type="module">
-// Die Versionsnummer zwingt den Browser, nach einer Änderung an report.js die neue Fassung zu laden.
-import {parseCsv, buildReport} from './report.js?v=4';
-
-const $ = (id) => document.getElementById(id);
-const el = (tag, attrs = {}, ...children) => {
-	const n = document.createElement(tag);
-	for (const [k, v] of Object.entries(attrs)) k === 'class' ? n.className = v : n.setAttribute(k, v);
-	n.append(...children);
-	return n;
-};
-
-// Datenquelle: ?src=<Ordner> oder, auf GitHub Pages, der Branch "data" desselben Repos
-const dataBase = () => {
-	const src = new URLSearchParams(location.search).get('src');
-	if (src) return src.replace(/\/?$/, '/');
-	if (location.hostname.endsWith('.github.io')) {
-		const owner = location.hostname.split('.')[0];
-		const repo = location.pathname.split('/').filter(Boolean)[0];
-		return `https://raw.githubusercontent.com/${owner}/${repo}/data/`;
-	}
-	return '../data/';
-};
-const base = dataBase();
-const load = async (name, required = false) => {
-	const res = await fetch(base + name, {cache: 'no-store'});
-	if (!res.ok) {
-		if (required) throw Object.assign(new Error(`${name} konnte nicht geladen werden (HTTP ${res.status}).`), {noData: true});
-		return [];
-	}
-	return parseCsv(await res.text());
-};
-
-const fmtTime = (s) => s ? `${s.slice(8, 10)}.${s.slice(5, 7)}. ${s.slice(11, 16)}` : '–';
-const fmtDay = (s) => `${s.slice(8, 10)}.${s.slice(5, 7)}.${s.slice(0, 4)}`;
-const fmtLead = (h) => {
-	if (h === null || Number.isNaN(h)) return '–';
-	const abs = Math.abs(h);
-	const txt = abs >= 48 ? `${(abs / 24).toFixed(1).replace('.', ',')} Tage`
-		: abs >= 1 ? `${Math.floor(abs)} h ${String(Math.round(abs % 1 * 60)).padStart(2, '0')} min`
-		: `${Math.round(abs * 60)} min`;
-	return h < 0 ? `${txt} danach` : `${txt} vorher`;
-};
-const pct = (a, b) => b ? `${Math.round(a / b * 100)} %` : '–';
-const dirLabel = {N: '→ Nürnberg', S: '→ München'};
-
-const table = (node, head, rows, emptyText) => {
-	node.replaceChildren();
-	if (!rows.length) { node.append(el('caption', {class: 'empty'}, emptyText)); return; }
-	node.append(el('thead', {}, el('tr', {}, ...head.map(([h, cls]) => el('th', cls ? {class: cls} : {}, h)))));
-	node.append(el('tbody', {}, ...rows.map(r => el('tr', {}, ...r.map((c, i) => el('td', head[i][1] ? {class: head[i][1]} : {}, c))))));
-};
-
-const renderStatus = (runs, events) => {
-	const last = runs.at(-1);
-	const node = $('status');
-	node.replaceChildren();
-	if (last) {
-		const ageH = (Date.now() - new Date(last.run_at)) / 36e5;
-		const errors = Number(last.errors);
-		const state = ageH > 3 ? ['var(--critical)', 'Sammler steht seit'] : errors ? ['var(--warning)', 'Letzter Lauf mit Fehlern:'] : ['var(--good)', 'Letzter Lauf:'];
-		node.append(el('span', {}, el('span', {class: 'dot', style: `background:${state[0]}`}), `${state[1]} ${fmtTime(last.run_at)} Uhr`));
-		node.append(el('span', {}, `${last.halts} anstehende Halte geprüft, ${errors} Fehler`));
-		node.append(el('span', {}, `${runs.length} Läufe seit ${fmtTime(runs[0].run_at)}`));
-	} else if (events.length) {
-		node.append(el('span', {}, `Stand: ${fmtTime(events.at(-1).detected_at)} Uhr`));
-	}
-};
-
-const render = (rep) => {
-	const n = rep.cancelled.length;
-	const tile = (label, value, sub) => el('div', {class: 'tile'},
-		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
-	$('tiles').replaceChildren(
-		tile('Gefahrene Züge', rep.run, rep.upcoming ? `dazu ${rep.upcoming} noch anstehend` : 'im Beobachtungszeitraum'),
-		tile('davon planmäßig', rep.runPlanned, `${pct(rep.runPlanned, rep.run)} der Züge`),
-		tile('mit gestrichenen Halten', rep.runCancelled, `${pct(rep.runCancelled, rep.run)} der Züge`),
-		tile('Mittlerer Vorlauf', n ? fmtLead(rep.medianLeadH).replace(/ (vorher|danach)$/, '') : '–',
-			n ? `Median; ${pct(rep.sameDay, n)} erst am Fahrtag angelegt` : 'noch keine Streichung'),
-	);
-
-	// Züge pro Tag: gestapelte Balken, Länge relativ zum Tag mit den meisten Zügen
-	const dayMax = Math.max(1, ...rep.days.map(d => d.planned + d.cancelled));
-	const seg = (cls, count) => count ? [el('div', {class: cls, style: `flex:${count}`})] : [];
-	$('days').replaceChildren(...(rep.days.length ? rep.days.map(d => {
-		const total = d.planned + d.cancelled;
-		return el('div', {class: 'row', title: `${fmtDay(d.date)}: ${d.planned} planmäßig, ${d.cancelled} mit gestrichenen Halten`},
-			el('div', {class: 'name'}, fmtDay(d.date)),
-			el('div', {class: 'stack', style: `width:${total / dayMax * 100}%`}, ...seg('a', d.planned), ...seg('b', d.cancelled)),
-			el('div', {class: 'num'}, `${d.planned} / ${d.cancelled}`));
-	}) : [el('div', {class: 'empty', style: 'grid-column:1/-1'}, 'Noch ist kein beobachteter Zug gefahren.')]));
-
-	// Kreisdiagramm je Zug: Anteil der Tage planmäßig (a) und mit gestrichenen Halten (b)
-	const svgEl = (tag, attrs) => {
-		const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
-		for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
-		return n;
-	};
-	const pie = (a, b) => {
-		const R = 20, C = 22, svg = svgEl('svg', {width: 44, height: 44, viewBox: '0 0 44 44', 'aria-hidden': 'true'});
-		if (!a || !b) { svg.append(svgEl('circle', {cx: C, cy: C, r: R, class: a ? 'a' : 'b'})); return svg; }
-		const pt = (f) => `${C + R * Math.sin(2 * Math.PI * f)},${C - R * Math.cos(2 * Math.PI * f)}`;
-		const slice = (from, to, cls) => svgEl('path', {class: cls,
-			d: `M${C},${C} L${pt(from)} A${R},${R} 0 ${to - from > 0.5 ? 1 : 0} 1 ${pt(to)} Z`});
-		const f = a / (a + b);
-		svg.append(slice(0, f, 'a'), slice(f, 1, 'b'));
-		return svg;
-	};
-	const pieRow = (dir) => {
-		const list = rep.byTrain[dir] || [];
-		return [el('div', {class: 'dir'}, dirLabel[dir]),
-			el('div', {class: 'line'}, ...(list.length ? list.map(t => {
-				const days = t.planned + t.cancelled;
-				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr: an ${t.planned} von ${days} ${days === 1 ? 'Tag' : 'Tagen'} planmäßig, an ${t.cancelled} mit gestrichenen Halten`},
-					pie(t.planned, t.cancelled), el('div', {class: 't'}, t.time), el('div', {}, t.train), el('div', {class: 'c'}, `${t.planned} / ${t.cancelled}`));
-			}) : [el('span', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')]))];
-	};
-	$('pies').replaceChildren(...pieRow('N'), ...pieRow('S'));
-
-	const max = Math.max(1, ...rep.histogram.map(b => b.count));
-	$('histogram').replaceChildren(...rep.histogram.map(b =>
-		el('div', {class: 'row', title: `${b.label}: ${b.count} Streichungen (${pct(b.count, n)})`},
-			el('div', {class: 'name'}, b.label),
-			el('div', {class: 'track'}, el('div', {class: 'fill', style: `width:${b.count / max * 100}%`})),
-			el('div', {class: 'num'}, `${b.count}`))));
-
-	const days = [...new Set(rep.trains.map(t => t.serviceDate))].sort().reverse();
-	const fill = (sel, all, opts) => sel.replaceChildren(el('option', {value: ''}, all), ...opts.map(([v, t]) => el('option', {value: v}, t)));
-	fill($('f-status'), 'alle', [['planned', 'planmäßig'], ['cancelled', 'mit gestrichenen Halten']]);
-	fill($('f-day'), 'alle', days.map(d => [d, fmtDay(d)]));
-	const haltCell = (h) => !h ? el('span', {class: 'muted'}, '–')
-		: h.cancelled ? `✕ ${h.status}` : el('span', {class: 'muted'}, `✓ ${h.plannedTime.slice(11, 16)}`);
-	const renderRows = () => {
-		const status = $('f-status').value, day = $('f-day').value;
-		const rows = rep.trains.filter(t =>
-			(!status || (status === 'cancelled') === t.cancelled) && (!day || t.serviceDate === day));
-		table($('trains'),
-			[['Zug'], ['Richtung'], ['Abfahrt'], ...rep.stations.map(s => [s]), ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
-			rows.map(t => [
-				t.train, dirLabel[t.direction] || '', fmtTime(t.plannedTime),
-				...rep.stations.map(s => haltCell(t.halts[s])),
-				t.cancelled ? fmtTime(t.createdAt) + (t.exact ? '' : ' *') : '', t.cancelled ? fmtLead(t.leadH) : '',
-				el('span', {}, ...[t.sameDay && 'am Fahrtag gestrichen', !t.past && 'anstehend']
-					.filter(Boolean).map(x => el('span', {class: 'tag'}, x))),
-			]),
-			'Kein Zug für diese Auswahl.');
-		$('footnote').hidden = !rows.some(t => t.cancelled && !t.exact);
-	};
-	$('f-status').onchange = $('f-day').onchange = renderRows;
-	renderRows();
-	$('content').hidden = false;
-};
-
-try {
-	const [events, runs] = await Promise.all([load('events.csv', true), load('runs.csv')]);
-	renderStatus(runs, events);
-	render(buildReport(events));
-} catch (err) {
-	$('status').textContent = '';
-	const box = $('error');
-	box.hidden = false;
-	box.append(el('h2', {}, err.noData ? 'Noch keine Daten' : 'Fehler bei der Auswertung'), el('p', {}, err.message),
-		el('p', {class: 'note'}, err.noData
-			? `Quelle: ${base} – die Datei entsteht mit dem ersten erfolgreichen Lauf des Sammlers.`
-			: 'Bitte die Seite ohne Cache neu laden (Cmd+Shift+R).'));
-}
-</script>
+<script type="module" src="./app.js?v=5"></script>
 </body>
 </html>
