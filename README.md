@@ -94,7 +94,7 @@ DB_API_KEY=...
 
 ## Alternativen zum Dauerbetrieb
 
-Die offizielle API lässt sich von überall abfragen. GitHub Actions genügt deshalb; geplante Läufe starten dort zwar oft 5–30 Minuten verspätet, der Streichungszeitpunkt stammt aber von der DB und bleibt exakt. Wer lieber einen eigenen Rechner nutzt (LNT-Server, Raspberry Pi, Mietserver), braucht nur einen Cron-Eintrag:
+Die offizielle API lässt sich von überall abfragen. GitHub Actions genügt deshalb; geplante Läufe starten dort zwar oft 5–30 Minuten verspätet und fallen unter Last gelegentlich ganz aus, der Streichungszeitpunkt stammt aber von der DB und bleibt exakt. Bei einem neuen Repository kann es einige Stunden dauern, bis der Zeitplan greift. Wer lieber einen eigenen Rechner nutzt (Raspberry Pi, Mietserver), braucht nur einen Cron-Eintrag:
 
 ```bash
 git clone git@github.com:frederikwalter/RE1-Monitor.git && cd RE1-Monitor && npm ci

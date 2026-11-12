@@ -2,7 +2,8 @@ name: RE1-Monitor
 
 on:
   schedule:
-    - cron: '7 * * * *'   # stündlich; GitHub startet geplante Läufe oft einige Minuten verspätet
+    # stündlich; Minute abseits der vollen Stunde, weil GitHub dort unter Last Läufe verschiebt oder auslässt
+    - cron: '23 * * * *'
   workflow_dispatch:
 
 # nie zwei Läufe gleichzeitig, sonst kollidieren die Commits auf dem Branch "data"
