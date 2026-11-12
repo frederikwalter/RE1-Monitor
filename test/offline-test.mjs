@@ -78,6 +78,8 @@ assert.deepEqual(rep.days, [{date: '2026-11-14', planned: 0, cancelled: 1}]);
 const all = buildReport(events, '2026-11-15T00:00:00');
 assert.deepEqual([all.run, all.runPlanned, all.runCancelled], [2, 1, 1], 'RE 4042 fuhr planmäßig');
 assert.deepEqual(all.trains.find(t => t.cancelled).cancelledStations, ['Roth']);
+assert.deepEqual(all.byTrain.N, [{train: 'RE 4041', time: '15:26', planned: 0, cancelled: 1}]);
+assert.deepEqual(all.byTrain.S, [{train: 'RE 4042', time: '15:36', planned: 1, cancelled: 0}]);
 assert.equal(rep.cancelled.length, 1);
 assert.equal(rep.sameDay, 1);
 assert.equal(rep.medianLeadH, 9.65);

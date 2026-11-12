@@ -60,6 +60,17 @@ section { padding: 20px; margin-top: 16px; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
 .muted { color: var(--text-3); }
+.pies { margin-top: 16px; display: grid; grid-template-columns: max-content 1fr; gap: 16px 16px; align-items: center; }
+.pies .dir { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+.pies .line { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 4px; }
+.pie { flex: none; text-align: center; font-size: 12px; line-height: 1.35; color: var(--text-2); }
+.pie svg { display: block; margin: 0 auto 4px; }
+.pie .t { color: var(--text); font-variant-numeric: tabular-nums; font-size: 13px; }
+.pie .c { font-variant-numeric: tabular-nums; }
+.pie circle.a, .pie path.a { fill: var(--bar); }
+.pie circle.b, .pie path.b { fill: var(--bar-2); }
+.pie path { stroke: var(--surface); stroke-width: 2; stroke-linejoin: round; }
+.pie:hover svg { opacity: .8; }
 .filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
 label { font-size: 13px; color: var(--text-2); }
 select {
@@ -97,6 +108,13 @@ a { color: inherit; }
 		</section>
 
 		<section>
+			<h2>Jeder Zug im Tagesverlauf</h2>
+			<p class="note">Ein Kreis je Zug, sortiert nach Abfahrtszeit: An wie vielen Tagen fuhr er planmäßig, an wie vielen mit gestrichenen Halten? Unter dem Kreis stehen beide Zahlen (planmäßig / gestrichen).</p>
+			<div class="legend"><span><i style="background:var(--bar)"></i>planmäßig</span><span><i style="background:var(--bar-2)"></i>mit gestrichenen Halten</span></div>
+			<div class="pies" id="pies"></div>
+		</section>
+
+		<section>
 			<h2>Wie lange vor der Sollzeit wurde gestrichen?</h2>
 			<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der Timetables-API), und der planmäßigen Abfahrt am Halt. Gezählt wird jeder gestrichene Halt.</p>
 			<div class="bars" id="histogram"></div>
@@ -117,7 +135,7 @@ a { color: inherit; }
 
 <script type="module">
 // Die Versionsnummer zwingt den Browser, nach einer Änderung an report.js die neue Fassung zu laden.
-import {parseCsv, buildReport} from './report.js?v=3';
+import {parseCsv, buildReport} from './report.js?v=4';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...children) => {
@@ -206,6 +224,33 @@ const render = (rep) => {
 			el('div', {class: 'stack', style: `width:${total / dayMax * 100}%`}, ...seg('a', d.planned), ...seg('b', d.cancelled)),
 			el('div', {class: 'num'}, `${d.planned} / ${d.cancelled}`));
 	}) : [el('div', {class: 'empty', style: 'grid-column:1/-1'}, 'Noch ist kein beobachteter Zug gefahren.')]));
+
+	// Kreisdiagramm je Zug: Anteil der Tage planmäßig (a) und mit gestrichenen Halten (b)
+	const svgEl = (tag, attrs) => {
+		const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+		for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+		return n;
+	};
+	const pie = (a, b) => {
+		const R = 20, C = 22, svg = svgEl('svg', {width: 44, height: 44, viewBox: '0 0 44 44', 'aria-hidden': 'true'});
+		if (!a || !b) { svg.append(svgEl('circle', {cx: C, cy: C, r: R, class: a ? 'a' : 'b'})); return svg; }
+		const pt = (f) => `${C + R * Math.sin(2 * Math.PI * f)},${C - R * Math.cos(2 * Math.PI * f)}`;
+		const slice = (from, to, cls) => svgEl('path', {class: cls,
+			d: `M${C},${C} L${pt(from)} A${R},${R} 0 ${to - from > 0.5 ? 1 : 0} 1 ${pt(to)} Z`});
+		const f = a / (a + b);
+		svg.append(slice(0, f, 'a'), slice(f, 1, 'b'));
+		return svg;
+	};
+	const pieRow = (dir) => {
+		const list = rep.byTrain[dir] || [];
+		return [el('div', {class: 'dir'}, dirLabel[dir]),
+			el('div', {class: 'line'}, ...(list.length ? list.map(t => {
+				const days = t.planned + t.cancelled;
+				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr: an ${t.planned} von ${days} ${days === 1 ? 'Tag' : 'Tagen'} planmäßig, an ${t.cancelled} mit gestrichenen Halten`},
+					pie(t.planned, t.cancelled), el('div', {class: 't'}, t.time), el('div', {}, t.train), el('div', {class: 'c'}, `${t.planned} / ${t.cancelled}`));
+			}) : [el('span', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')]))];
+	};
+	$('pies').replaceChildren(...pieRow('N'), ...pieRow('S'));
 
 	const max = Math.max(1, ...rep.histogram.map(b => b.count));
 	$('histogram').replaceChildren(...rep.histogram.map(b =>

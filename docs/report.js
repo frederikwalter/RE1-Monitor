@@ -101,6 +101,24 @@ export const buildReport = (events, now = berlinNow()) => {
 		dayMap.get(t.serviceDate)[t.cancelled ? 'cancelled' : 'planned']++;
 	}
 
+	// je Zugnummer und Richtung: an wie vielen Tagen planmäßig bzw. mit gestrichenen Halten gefahren
+	const numMap = new Map();
+	for (const t of run) {
+		const k = `${t.direction}|${t.train.replace(/\D/g, '')}`;
+		if (!numMap.has(k)) numMap.set(k, {train: t.train, direction: t.direction, times: {}, planned: 0, cancelled: 0});
+		const g = numMap.get(k);
+		g[t.cancelled ? 'cancelled' : 'planned']++;
+		const hm = t.plannedTime.slice(11, 16);
+		g.times[hm] = (g.times[hm] || 0) + 1;
+	}
+	const byTrain = {N: [], S: []};
+	for (const g of numMap.values()) {
+		// übliche Abfahrtszeit = die häufigste
+		const time = Object.entries(g.times).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
+		(byTrain[g.direction] ||= []).push({train: g.train, time, planned: g.planned, cancelled: g.cancelled});
+	}
+	for (const list of Object.values(byTrain)) list.sort((a, b) => a.time.localeCompare(b.time));
+
 	const cancelled = rows.filter(r => r.cancelled);
 	const histogram = BUCKETS.map(([label]) => ({label, count: 0}));
 	for (const r of cancelled) histogram[bucketOf(r.leadH)].count++;
@@ -114,6 +132,7 @@ export const buildReport = (events, now = berlinNow()) => {
 		runCancelled: run.filter(t => t.cancelled).length,
 		upcoming: trains.length - run.length,
 		days: [...dayMap.values()].sort((a, b) => b.date.localeCompare(a.date)),
+		byTrain,
 		// Zeitpunkt der Streichungen (alle Halte, auch anstehende)
 		halts: rows.length,
 		cancelled,

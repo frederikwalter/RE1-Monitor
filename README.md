@@ -41,7 +41,7 @@ Die erste Fassung fragte die Schnittstelle von bahn.de / DB Navigator ab, weil s
 
 ## Auswertung
 
-Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` und rechnet im Browser. Sie zeigt, wie viele Züge planmäßig und wie viele mit gestrichenen Halten gefahren sind (gesamt und pro Tag), die Verteilung des Vorlaufs, eine Liste aller Züge und den Zustand des Sammlers. Ein Zug gilt als planmäßig, wenn keiner seiner Halte in Roth und Nürnberg Hbf gestrichen wurde. Die Rechenlogik liegt in `docs/report.js`.
+Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` und rechnet im Browser. Sie zeigt, wie viele Züge planmäßig und wie viele mit gestrichenen Halten gefahren sind (gesamt, pro Tag und je Zug im Tagesverlauf), die Verteilung des Vorlaufs, eine Liste aller Züge und den Zustand des Sammlers. Ein Zug gilt als planmäßig, wenn keiner seiner Halte in Roth und Nürnberg Hbf gestrichen wurde. Die Rechenlogik liegt in `docs/report.js`.
 
 Lokal ansehen (aus dem Repo-Ordner, mit Daten in `data/`):
 
