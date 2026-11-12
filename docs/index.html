@@ -9,7 +9,7 @@
 	color-scheme: light;
 	--page: #f4f3f0; --surface: #fcfcfb; --border: #e2e0da;
 	--text: #0b0b0b; --text-2: #52514e; --text-3: #7a7872;
-	--bar: #2a78d6; --bar-track: #ecebe6;
+	--bar: #2a78d6; --bar-2: #eb6834; --bar-track: #ecebe6;
 	--good: #0ca30c; --critical: #d03b3b; --warning: #fab219;
 }
 @media (prefers-color-scheme: dark) {
@@ -17,7 +17,7 @@
 		color-scheme: dark;
 		--page: #111110; --surface: #1a1a19; --border: #33332f;
 		--text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e85;
-		--bar: #3987e5; --bar-track: #262624;
+		--bar: #3987e5; --bar-2: #d95926; --bar-track: #262624;
 	}
 }
 * { box-sizing: border-box; }
@@ -52,6 +52,14 @@ section { padding: 20px; margin-top: 16px; }
 .bars .num { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
 .bars .day-split { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 2px 0; }
 
+.stack { display: flex; gap: 2px; height: 18px; }
+.stack div { min-width: 0; }
+.stack .a { background: var(--bar); border-radius: 4px 0 0 4px; }
+.stack .b { background: var(--bar-2); border-radius: 0 4px 4px 0; }
+.stack .a:only-child, .stack .b:only-child { border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.muted { color: var(--text-3); }
 .filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
 label { font-size: 13px; color: var(--text-2); }
 select {
@@ -73,7 +81,7 @@ a { color: inherit; }
 <body>
 <main>
 	<h1>RE1-Monitor</h1>
-	<p class="lead">Wann streicht die DB die Halte des RE1 in Roth und Nürnberg Hbf? Die Seite wertet aus, wie lange vor der planmäßigen Abfahrt die DB eine Streichung in ihrem System angelegt hat.</p>
+	<p class="lead">Wie viele Züge des RE1 fahren planmäßig über Roth und Nürnberg Hbf, bei wie vielen streicht die DB diese Halte, und wie lange vor der Abfahrt legt sie die Streichung an?</p>
 	<div class="status" id="status">Daten werden geladen …</div>
 
 	<section id="error" hidden></section>
@@ -82,18 +90,25 @@ a { color: inherit; }
 		<div class="tiles" id="tiles"></div>
 
 		<section>
+			<h2>Gefahrene Züge pro Tag</h2>
+			<p class="note">Ein Zug gilt als planmäßig, wenn keiner seiner Halte in Roth und Nürnberg Hbf gestrichen wurde. Gezählt werden nur Züge, deren Abfahrt schon vorbei ist.</p>
+			<div class="legend"><span><i style="background:var(--bar)"></i>planmäßig</span><span><i style="background:var(--bar-2)"></i>mit gestrichenen Halten</span></div>
+			<div class="bars" id="days"></div>
+		</section>
+
+		<section>
 			<h2>Wie lange vor der Sollzeit wurde gestrichen?</h2>
-			<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der Timetables-API), und der planmäßigen Abfahrt am Halt.</p>
+			<p class="note">Abstand zwischen dem Zeitpunkt, zu dem die DB die Streichung angelegt hat (Feld <code>clt</code> der Timetables-API), und der planmäßigen Abfahrt am Halt. Gezählt wird jeder gestrichene Halt.</p>
 			<div class="bars" id="histogram"></div>
 		</section>
 
 		<section>
-			<h2>Einzelne Streichungen</h2>
+			<h2>Alle Züge</h2>
 			<div class="filters">
-				<label>Bahnhof <select id="f-halt"></select></label>
+				<label>Status <select id="f-status"></select></label>
 				<label>Betriebstag <select id="f-day"></select></label>
 			</div>
-			<div class="scroll"><table id="cancellations"></table></div>
+			<div class="scroll"><table id="trains"></table></div>
 			<p class="note" id="footnote" hidden>* Die DB hat keinen Anlagezeitpunkt geliefert; angegeben ist der erste Abruf, bei dem die Streichung sichtbar war.</p>
 		</section>
 
@@ -173,12 +188,23 @@ const render = (rep) => {
 	const tile = (label, value, sub) => el('div', {class: 'tile'},
 		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
 	$('tiles').replaceChildren(
-		tile('Beobachtete Halte', rep.halts, rep.stations.join(', ') || '–'),
-		tile('davon gestrichen', n, `${pct(n, rep.halts)} der Halte`),
-		tile('erst am Fahrtag gestrichen', rep.sameDay, `${pct(rep.sameDay, n)} der Streichungen`),
+		tile('Gefahrene Züge', rep.run, rep.upcoming ? `dazu ${rep.upcoming} noch anstehend` : 'im Beobachtungszeitraum'),
+		tile('davon planmäßig', rep.runPlanned, `${pct(rep.runPlanned, rep.run)} der Züge`),
+		tile('mit gestrichenen Halten', rep.runCancelled, `${pct(rep.runCancelled, rep.run)} der Züge`),
 		tile('Mittlerer Vorlauf', n ? fmtLead(rep.medianLeadH).replace(/ (vorher|danach)$/, '') : '–',
-			n ? `Median, ${rep.medianLeadH < 0 ? 'nach' : 'vor'} der Sollzeit` : 'noch keine Streichung'),
+			n ? `Median; ${pct(rep.sameDay, n)} erst am Fahrtag angelegt` : 'noch keine Streichung'),
 	);
+
+	// Züge pro Tag: gestapelte Balken, Länge relativ zum Tag mit den meisten Zügen
+	const dayMax = Math.max(1, ...rep.days.map(d => d.planned + d.cancelled));
+	const seg = (cls, count) => count ? [el('div', {class: cls, style: `flex:${count}`})] : [];
+	$('days').replaceChildren(...(rep.days.length ? rep.days.map(d => {
+		const total = d.planned + d.cancelled;
+		return el('div', {class: 'row', title: `${fmtDay(d.date)}: ${d.planned} planmäßig, ${d.cancelled} mit gestrichenen Halten`},
+			el('div', {class: 'name'}, fmtDay(d.date)),
+			el('div', {class: 'stack', style: `width:${total / dayMax * 100}%`}, ...seg('a', d.planned), ...seg('b', d.cancelled)),
+			el('div', {class: 'num'}, `${d.planned} / ${d.cancelled}`));
+	}) : [el('div', {class: 'empty', style: 'grid-column:1/-1'}, 'Noch ist kein beobachteter Zug gefahren.')]));
 
 	const max = Math.max(1, ...rep.histogram.map(b => b.count));
 	$('histogram').replaceChildren(...rep.histogram.map(b =>
@@ -187,27 +213,29 @@ const render = (rep) => {
 			el('div', {class: 'track'}, el('div', {class: 'fill', style: `width:${b.count / max * 100}%`})),
 			el('div', {class: 'num'}, `${b.count}`))));
 
-	const days = [...new Set(rep.cancelled.map(r => r.serviceDate))].sort().reverse();
+	const days = [...new Set(rep.trains.map(t => t.serviceDate))].sort().reverse();
 	const fill = (sel, all, opts) => sel.replaceChildren(el('option', {value: ''}, all), ...opts.map(([v, t]) => el('option', {value: v}, t)));
-	fill($('f-halt'), 'alle', rep.stations.map(h => [h, h]));
+	fill($('f-status'), 'alle', [['planned', 'planmäßig'], ['cancelled', 'mit gestrichenen Halten']]);
 	fill($('f-day'), 'alle', days.map(d => [d, fmtDay(d)]));
+	const haltCell = (h) => !h ? el('span', {class: 'muted'}, '–')
+		: h.cancelled ? `✕ ${h.status}` : el('span', {class: 'muted'}, `✓ ${h.plannedTime.slice(11, 16)}`);
 	const renderRows = () => {
-		const station = $('f-halt').value, day = $('f-day').value;
-		const rows = rep.cancelled
-			.filter(r => (!station || r.station === station) && (!day || r.serviceDate === day))
-			.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
-		table($('cancellations'),
-			[['Zug'], ['Richtung'], ['Bahnhof'], ['Sollzeit'], ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
-			rows.map(r => [
-				r.train, dirLabel[r.direction] || '', r.station, fmtTime(r.plannedTime),
-				fmtTime(r.createdAt) + (r.exact ? '' : ' *'), fmtLead(r.leadH),
-				el('span', {}, ...[r.sameDay && 'am Fahrtag', r.restored && 'später wiederhergestellt']
-					.filter(Boolean).map(t => el('span', {class: 'tag'}, t))),
+		const status = $('f-status').value, day = $('f-day').value;
+		const rows = rep.trains.filter(t =>
+			(!status || (status === 'cancelled') === t.cancelled) && (!day || t.serviceDate === day));
+		table($('trains'),
+			[['Zug'], ['Richtung'], ['Abfahrt'], ...rep.stations.map(s => [s]), ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
+			rows.map(t => [
+				t.train, dirLabel[t.direction] || '', fmtTime(t.plannedTime),
+				...rep.stations.map(s => haltCell(t.halts[s])),
+				t.cancelled ? fmtTime(t.createdAt) + (t.exact ? '' : ' *') : '', t.cancelled ? fmtLead(t.leadH) : '',
+				el('span', {}, ...[t.sameDay && 'am Fahrtag gestrichen', !t.past && 'anstehend']
+					.filter(Boolean).map(x => el('span', {class: 'tag'}, x))),
 			]),
-			n ? 'Keine Streichung für diese Auswahl.' : 'Bisher wurde keine Streichung erkannt.');
-		$('footnote').hidden = !rows.some(r => !r.exact);
+			'Kein Zug für diese Auswahl.');
+		$('footnote').hidden = !rows.some(t => t.cancelled && !t.exact);
 	};
-	$('f-halt').onchange = $('f-day').onchange = renderRows;
+	$('f-status').onchange = $('f-day').onchange = renderRows;
 	renderRows();
 	$('content').hidden = false;
 };

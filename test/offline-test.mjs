@@ -70,8 +70,14 @@ assert.equal(snaps.length, 3, 'ein Schnappschuss je Ereignis');
 const events = readCsv('events.csv');
 console.log('events.csv:');
 for (const e of events) console.log(' ', e.detected_at, e.train, e.station, e.planned_time, e.event, e.new_status, e.cancellation_created_at, `(${e.lead_time_h} h)`);
-const rep = buildReport(events);
+const rep = buildReport(events, '2026-11-14T15:30:00'); // RE 4041 ist gefahren, RE 4042 (15:36) steht noch aus
 assert.equal(rep.halts, 2);
+assert.equal(rep.trains.length, 2);
+assert.deepEqual([rep.run, rep.runPlanned, rep.runCancelled, rep.upcoming], [1, 0, 1, 1]);
+assert.deepEqual(rep.days, [{date: '2026-11-14', planned: 0, cancelled: 1}]);
+const all = buildReport(events, '2026-11-15T00:00:00');
+assert.deepEqual([all.run, all.runPlanned, all.runCancelled], [2, 1, 1], 'RE 4042 fuhr planmäßig');
+assert.deepEqual(all.trains.find(t => t.cancelled).cancelledStations, ['Roth']);
 assert.equal(rep.cancelled.length, 1);
 assert.equal(rep.sameDay, 1);
 assert.equal(rep.medianLeadH, 9.65);
