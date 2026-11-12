@@ -1,25 +1,28 @@
 #!/usr/bin/env node
 // RE1-Monitor – Sammler (bahn.de / DB Navigator über db-vendo-client, ohne API-Key)
 //
-// Ein Lauf:
-//   1. fragt an den Ankerbahnhöfen (Standard: Treuchtlingen) Abfahrten UND Ankünfte
-//      für jede Stunde im Fenster [jetzt - lookback, jetzt + horizon] ab,
-//   2. filtert alle Fahrten der Linie RE1,
-//   3. lädt für jede Fahrt den kompletten Laufweg (alle Halte inkl. "fällt aus"-Markierung),
-//   4. vergleicht mit dem zuletzt gespeicherten Stand und schreibt jede Änderung
-//      mit Zeitstempel nach data/events.csv.
+// Die Schnittstelle kennt keine Suche nach Zugnummer. Ein Lauf hat deshalb zwei Phasen:
+//   1. Entdecken: Abfahrts- und Ankunftstafel am Ankerbahnhof (Treuchtlingen), aber nur für
+//      Stundenfenster, die noch nie oder vor mehr als `rescanHours` abgefragt wurden.
+//   2. Direktabruf: Jede bereits bekannte Fahrt wird über ihre Fahrt-ID geladen, ohne Tafel.
+//      Ist die ID ungültig geworden, wird das Stundenfenster der Fahrt neu abgefragt.
+// Der Laufweg jeder Fahrt wird mit dem letzten gespeicherten Stand verglichen; jede Änderung
+// landet mit Zeitstempel in data/events.csv.
 //
 // Aufruf:  node collect.mjs [--horizon 72] [--dry-run]
 import path from 'node:path';
 import {
-	DATA, loadConfig, readJson, writeJson, appendCsv, appendJsonl, withLock, sleep, withRetry,
-	berlin, berlinDate, hoursBetween, normName,
+	DATA, loadConfig, readJson, writeJson, appendCsv, appendJsonl, sleep, withRetry,
+	berlin, berlinDate, hoursBetween, normName, isMain,
 } from './lib.mjs';
 
 export const EVENT_HEADER = [
 	'detected_at', 'trip_key', 'train', 'service_date', 'direction', 'event', 'stop', 'watch_stop',
 	'old_value', 'new_value', 'stop_planned_time', 'lead_time_h', 'detail',
 ];
+export const RUN_HEADER = ['run_at', 'horizon_h', 'trips', 'events', 'errors', 'board_requests', 'trip_requests'];
+
+const HOUR = 36e5;
 
 // ---------- Normalisierung ----------
 
@@ -38,7 +41,7 @@ const remarkTexts = (list, prefix = '') => (list || [])
 	.filter(Boolean)
 	.map(t => prefix + t);
 
-export const normalizeTrip = (trip, cfg, anchorNames) => {
+export const normalizeTrip = (trip, cfg) => {
 	const stops = (trip.stopovers || []).map(s => ({
 		name: s.stop?.name || '?',
 		id: s.stop?.id || null,
@@ -46,32 +49,47 @@ export const normalizeTrip = (trip, cfg, anchorNames) => {
 		plannedDeparture: s.plannedDeparture || null,
 		cancelled: Boolean(s.cancelled),
 	}));
-	const anchorIdx = stops.findIndex(s => anchorNames.some(a => normName(a) === normName(s.name)));
-	if (anchorIdx < 0) return null;
-	const anchor = stops[anchorIdx];
+	if (!stops.length) return null;
 
-	const south = new RegExp(cfg.southRegex, 'i');
-	const north = new RegExp(cfg.northRegex, 'i');
-	const before = stops.slice(0, anchorIdx).map(s => s.name).join('|');
-	const after = stops.slice(anchorIdx + 1).map(s => s.name).join('|');
-	const direction = (south.test(before) || north.test(after)) ? 'N' : 'S';
+	// Richtung: liegt ein südlicher Halt vor einem nördlichen, fährt der Zug nach Norden.
+	const firstIdx = (re) => stops.findIndex(s => new RegExp(re, 'i').test(s.name));
+	const south = firstIdx(cfg.southRegex);
+	const north = firstIdx(cfg.northRegex);
+	const anchorIdx = stops.findIndex(s => cfg.anchorStations.some(a => normName(a) === normName(s.name)));
+	let direction = '?';
+	if (south >= 0 && north >= 0) direction = south < north ? 'N' : 'S';
+	else if (anchorIdx >= 0 && south >= 0) direction = south < anchorIdx ? 'N' : 'S';
+	else if (anchorIdx >= 0 && north >= 0) direction = north > anchorIdx ? 'N' : 'S';
 
-	const anchorTime = anchor.plannedDeparture || anchor.plannedArrival;
+	// Bezugszeit: Sollzeit am Ankerbahnhof, sonst am ersten Halt
+	const ref = stops[anchorIdx >= 0 ? anchorIdx : 0];
+	const refPlanned = stopTime(ref);
+	const serviceDate = berlinDate(stopTime(stops[0]) || refPlanned);
+
+	// Schlüssel: Betriebstag + Zugnummer. Manche Antworten liefern statt der Zugnummer nur
+	// die Ziffern der Linie ("1"); dann greift Sollzeit am Anker + Richtung.
+	const train = trip.line?.name || '';
+	const fahrtNr = String(trip.line?.fahrtNr || '');
+	const hasNr = fahrtNr && fahrtNr !== train.replace(/\D/g, '');
+	const key = hasNr
+		? `${serviceDate}_${fahrtNr}`
+		: `${berlin(refPlanned).slice(0, 16).replace(':', '')}_${direction}`;
+
 	const remarks = [
 		...remarkTexts(trip.remarks),
 		...(trip.stopovers || []).flatMap(s => remarkTexts(s.remarks, `[${s.stop?.name}] `)),
 	];
 
 	return {
-		key: `${berlin(anchorTime).slice(0, 16).replace(':', '')}_${direction}`,
+		key,
 		tripId: trip.id,
-		train: trip.line?.name || '',
-		fahrtNr: trip.line?.fahrtNr || '',
+		train: hasNr ? `${train} (${fahrtNr})` : train,
+		fahrtNr: hasNr ? fahrtNr : '',
 		direction,
-		serviceDate: berlinDate(stopTime(stops[0]) || anchorTime),
-		anchor: {name: anchor.name, planned: anchorTime},
-		origin: stops[0]?.name,
-		destination: stops[stops.length - 1]?.name,
+		serviceDate,
+		anchor: {name: ref.name, planned: refPlanned},
+		origin: stops[0].name,
+		destination: stops[stops.length - 1].name,
 		cancelled: Boolean(trip.cancelled),
 		stops,
 		remarks: [...new Set(remarks)].sort(),
@@ -149,10 +167,10 @@ export const diffStates = (prev, cur, cfg, now) => {
 
 // ---------- API-Zugriff ----------
 
-const resolveStations = async (client, cfg, names, delay) => {
-	const cacheFile = path.join(DATA, 'stations.json');
+const resolveStations = async (client, cfg, delay) => {
+	const cacheFile = path.join(DATA, 'state', 'stations.json');
 	const cache = {...readJson(cacheFile, {}), ...(cfg.stationIds || {})};
-	for (const name of names) {
+	for (const name of cfg.anchorStations) {
 		if (cache[name]) continue;
 		const res = await withRetry(() => client.locations(name, {results: 3, addresses: false, poi: false}),
 			{label: `Bahnhofssuche ${name}`});
@@ -160,132 +178,184 @@ const resolveStations = async (client, cfg, names, delay) => {
 		if (!hit) throw new Error(`Bahnhof nicht gefunden: ${name}`);
 		cache[name] = hit.id;
 		console.log(`  Bahnhof ${name} → ${hit.name} (${hit.id})`);
+		writeJson(cacheFile, cache);
 		await sleep(delay);
 	}
-	writeJson(cacheFile, cache);
 	return cache;
 };
 
+const hourStart = (d) => { const t = new Date(d); t.setMinutes(0, 0, 0); return t; };
+
 export const runCollect = async (client, cfg, {horizonHours, now = new Date(), dryRun = false} = {}) => {
 	const delay = cfg.requestDelayMs ?? 1200;
-	const retry = (fn, label) => withRetry(fn, {retries: cfg.maxRetries ?? 3, label});
+	const retries = cfg.maxRetries ?? 3;
 	const lineRe = new RegExp(cfg.lineRegex, 'i');
-	const ids = await resolveStations(client, cfg, cfg.anchorStations, delay);
+	const ids = await resolveStations(client, cfg, delay);
 
-	const start = new Date(now.getTime() - (cfg.lookbackHours ?? 1) * 36e5);
-	start.setMinutes(0, 0, 0);
-	const end = new Date(now.getTime() + horizonHours * 36e5);
+	const start = hourStart(now.getTime() - (cfg.lookbackHours ?? 1) * HOUR);
+	const end = new Date(now.getTime() + horizonHours * HOUR);
 
-	// 1. Fahrten über die Tafeln finden
-	const found = new Map(); // tripId -> line name
-	const okWindows = [];
+	const stateDir = path.join(DATA, 'state');
+	const indexFile = path.join(DATA, 'index.json');
+	const windowsFile = path.join(stateDir, 'windows.json');
+	const index = readJson(indexFile, {});     // key -> {tripId, anchorPlanned, train, serviceDate, direction, missing}
+	const windows = readJson(windowsFile, {}); // ISO-Stundenbeginn -> Zeitpunkt der letzten erfolgreichen Abfrage
+
+	const found = new Map();       // tripId -> Linienname (von den Tafeln)
+	const scannedOk = new Set();   // in diesem Lauf erfolgreich abgefragte Fenster
+	const scannedFail = new Set();
 	const linesSeen = {};
-	let errors = 0;
-	for (let t = start; t < end; t = new Date(t.getTime() + 36e5)) {
-		let windowOk = true;
+	let errors = 0, boardRequests = 0, tripRequests = 0;
+
+	const scanWindow = async (t) => {
+		const iso = t.toISOString();
+		if (scannedOk.has(iso) || scannedFail.has(iso)) return;
+		let ok = true;
 		for (const anchor of cfg.anchorStations) {
 			for (const kind of ['departures', 'arrivals']) {
+				boardRequests++;
 				try {
-					const res = await retry(() => client[kind](ids[anchor], {
+					const res = await withRetry(() => client[kind](ids[anchor], {
 						when: t, duration: 60, remarks: false, stopovers: false,
-					}), `${kind} ${anchor} ${berlin(t)}`);
+					}), {retries, label: `${kind} ${anchor} ${berlin(t)}`});
 					for (const d of res[kind] || []) {
 						const name = d.line?.name || '';
 						linesSeen[name] = (linesSeen[name] || 0) + 1;
 						if (lineRe.test(name) && d.tripId) found.set(d.tripId, name);
 					}
 				} catch (err) {
-					windowOk = false; errors++;
+					ok = false; errors++;
 					console.error(`  ✗ ${kind} ${anchor} ${berlin(t)}: ${err.message}`);
 				}
 				await sleep(delay);
 			}
 		}
-		if (windowOk) okWindows.push([t, new Date(t.getTime() + 36e5)]);
-	}
-	console.log(`  ${found.size} RE1-Fahrten auf den Tafeln gefunden`);
+		if (ok) { scannedOk.add(iso); windows[iso] = now.toISOString(); } else scannedFail.add(iso);
+	};
 
-	// 2. Laufwege laden und normalisieren
-	const current = new Map();
-	for (const [tripId] of found) {
+	// 1. Entdecken: nur neue oder länger nicht abgefragte Stundenfenster
+	const rescanMs = (cfg.rescanHours ?? 6) * HOUR;
+	for (let t = start; t < end; t = new Date(t.getTime() + HOUR)) {
+		const last = windows[t.toISOString()];
+		if (!last || now - new Date(last) >= rescanMs) await scanWindow(t);
+	}
+	for (const iso of Object.keys(windows)) if (new Date(iso) < start) delete windows[iso];
+
+	const current = new Map(); // key -> normalisierter Stand
+	const fetched = new Set(); // bereits geladene Fahrt-IDs
+	const loadTrip = async (tripId, tries) => {
+		fetched.add(tripId);
+		tripRequests++;
 		try {
-			const {trip} = await retry(() => client.trip(tripId, {stopovers: true, remarks: true, polyline: false}),
-				`Fahrt ${tripId.slice(0, 30)}`);
-			const st = normalizeTrip(trip, cfg, cfg.anchorStations);
+			const {trip} = await withRetry(() => client.trip(tripId, {stopovers: true, remarks: true, polyline: false}),
+				{retries: tries, label: `Fahrt ${tripId.slice(0, 30)}`});
+			return normalizeTrip(trip, cfg);
+		} finally { await sleep(delay); }
+	};
+
+	// 2. Direktabruf aller bekannten, noch anstehenden Fahrten
+	const stale = []; // Schlüssel, deren Fahrt-ID nicht mehr funktioniert
+	for (const [key, meta] of Object.entries(index)) {
+		const planned = new Date(meta.anchorPlanned);
+		if (planned < start || planned >= end || meta.missing || !meta.tripId) continue;
+		try {
+			const st = await loadTrip(meta.tripId, Math.min(retries, 1));
+			if (st) current.set(st.key, st); else stale.push(key);
+		} catch (err) {
+			stale.push(key);
+			console.error(`  ! Direktabruf ${key} fehlgeschlagen (${err.message}), Tafel wird neu abgefragt`);
+		}
+	}
+	for (const key of stale) await scanWindow(hourStart(index[key].anchorPlanned));
+
+	// 3. Laufwege der auf den Tafeln neu gefundenen Fahrten
+	for (const tripId of found.keys()) {
+		if (fetched.has(tripId)) continue;
+		try {
+			const st = await loadTrip(tripId, retries);
 			if (st) current.set(st.key, st);
 		} catch (err) {
 			errors++;
 			console.error(`  ✗ Fahrt ${tripId.slice(0, 40)}…: ${err.message}`);
 		}
-		await sleep(delay);
 	}
+	console.log(`  ${boardRequests} Tafel-Anfragen, ${tripRequests} Fahrt-Anfragen, ${current.size} RE1-Fahrten`);
 
-	// 3. Mit gespeichertem Stand vergleichen
-	const stateDir = path.join(DATA, 'state');
-	const indexFile = path.join(DATA, 'index.json');
-	const index = readJson(indexFile, {}); // key -> {anchorPlanned, missing}
+	// 4. Mit gespeichertem Stand vergleichen
 	const events = [];
 	for (const [key, st] of current) {
-		const prevFile = path.join(stateDir, `${key}.json`);
+		const prevFile = path.join(stateDir, 'trips', `${key}.json`);
 		const prev = readJson(prevFile);
 		if (prev && index[key]?.missing) prev.missing = true;
-		events.push(...diffStates(prev, st, cfg, now));
-		if (!dryRun) {
-			writeJson(prevFile, {...st, firstSeen: prev?.firstSeen || berlin(now), lastSeen: berlin(now)});
-			appendJsonl(path.join(DATA, 'snapshots', `${berlinDate(now)}.jsonl`), {run_at: berlin(now), ...st});
+		const evs = diffStates(prev, st, cfg, now);
+		events.push(...evs);
+		// Stand und Schnappschuss nur schreiben, wenn sich etwas geändert hat
+		if (!dryRun && (evs.length || prev?.tripId !== st.tripId)) {
+			writeJson(prevFile, {...st, firstSeen: prev?.firstSeen || berlin(now), lastChange: berlin(now)});
+			if (evs.length) appendJsonl(path.join(DATA, 'snapshots', `${berlinDate(now)}.jsonl`), {run_at: berlin(now), ...st});
 		}
-		index[key] = {anchorPlanned: st.anchor.planned, train: st.train, serviceDate: st.serviceDate, missing: false};
+		index[key] = {
+			tripId: st.tripId, anchorPlanned: st.anchor.planned, train: st.train,
+			serviceDate: st.serviceDate, direction: st.direction, missing: false,
+		};
 	}
-	// bekannte Fahrten, die in einem erfolgreich abgefragten Fenster nicht mehr auftauchen
-	const inOkWindow = (iso) => okWindows.some(([a, b]) => new Date(iso) >= a && new Date(iso) < b);
-	for (const [key, meta] of Object.entries(index)) {
-		if (current.has(key) || meta.missing || !inOkWindow(meta.anchorPlanned)) continue;
+
+	// bekannte Fahrten, deren ID ungültig ist und die auch auf der Tafel fehlen
+	for (const key of stale) {
+		const meta = index[key];
+		if (current.has(key) || !scannedOk.has(hourStart(meta.anchorPlanned).toISOString())) continue;
 		if (new Date(meta.anchorPlanned) < now) continue; // schon vorbei, Tafel zeigt sie evtl. nicht mehr
 		events.push({
 			detected_at: berlin(now), trip_key: key, train: meta.train, service_date: meta.serviceDate,
-			direction: key.slice(-1), event: 'FAHRT_NICHT_MEHR_GEFUNDEN',
+			direction: meta.direction, event: 'FAHRT_NICHT_MEHR_GEFUNDEN',
 			stop_planned_time: berlin(meta.anchorPlanned), lead_time_h: hoursBetween(now, meta.anchorPlanned),
 		});
 		meta.missing = true;
 	}
+	// alte Einträge (> 7 Tage) aus dem Index entfernen; die Stände in state/trips bleiben erhalten
+	for (const [key, meta] of Object.entries(index)) {
+		if (new Date(meta.anchorPlanned) < now.getTime() - 7 * 24 * HOUR) delete index[key];
+	}
 
 	if (!dryRun) {
 		writeJson(indexFile, index);
+		writeJson(windowsFile, windows);
 		appendCsv(path.join(DATA, 'events.csv'), EVENT_HEADER, events);
-		appendCsv(path.join(DATA, 'runs.csv'),
-			['run_at', 'horizon_h', 'trips', 'events', 'errors'],
-			[{run_at: berlin(now), horizon_h: horizonHours, trips: current.size, events: events.length, errors}]);
-		writeJson(path.join(DATA, 'debug', 'lines_seen_at_anchor.json'), linesSeen);
+		appendCsv(path.join(DATA, 'runs.csv'), RUN_HEADER, [{
+			run_at: berlin(now), horizon_h: horizonHours, trips: current.size, events: events.length, errors,
+			board_requests: boardRequests, trip_requests: tripRequests,
+		}]);
+		writeJson(path.join(stateDir, 'lines_seen_at_anchor.json'), linesSeen);
 	}
-	return {trips: current.size, events, errors, linesSeen};
+	return {trips: current.size, events, errors, boardRequests, tripRequests, linesSeen};
 };
 
 // ---------- CLI ----------
 
-const isMain = process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1]));
-if (isMain) {
+if (isMain(import.meta.url)) {
 	const cfg = loadConfig();
 	const args = process.argv.slice(2);
 	const hIdx = args.indexOf('--horizon');
 	const horizonHours = hIdx >= 0 ? Number(args[hIdx + 1]) : cfg.defaultHorizonHours;
 	const dryRun = args.includes('--dry-run');
-
-	if (/BITTE-EMAIL-EINTRAGEN/.test(cfg.userAgent)) {
-		console.error('Bitte in config.json bei "userAgent" eine Kontaktadresse eintragen.');
-		process.exit(1);
+	if (!Number.isFinite(horizonHours) || horizonHours <= 0) {
+		console.error('--horizon erwartet eine Stundenzahl > 0');
+		process.exit(2);
 	}
 
 	const {createClient} = await import('db-vendo-client');
 	const {profile} = await import(`db-vendo-client/p/${cfg.profile}/index.js`);
-	const client = createClient(profile, cfg.userAgent, {enrichStations: false});
+	const client = createClient(profile, process.env.RE1_USER_AGENT || cfg.userAgent, {enrichStations: false});
 
-	await withLock('collect', async () => {
-		const t0 = Date.now();
-		console.log(`[${berlin(new Date())}] RE1-Sammler, Horizont ${horizonHours} h`);
-		const res = await runCollect(client, cfg, {horizonHours, dryRun});
-		console.log(`  ${res.trips} Fahrten, ${res.events.length} Ereignisse, ${res.errors} Fehler, ${Math.round((Date.now() - t0) / 1000)} s`);
-		for (const e of res.events.filter(e => e.watch_stop || /FAHRT_(GESTRICHEN|NICHT)/.test(e.event))) {
-			console.log(`  → ${e.event} ${e.trip_key} ${e.stop || ''} (${e.lead_time_h} h vor Soll)`);
-		}
-	});
+	const t0 = Date.now();
+	console.log(`[${berlin(new Date())}] RE1-Sammler, Horizont ${horizonHours} h${dryRun ? ' (Probelauf, nichts wird gespeichert)' : ''}`);
+	const res = await runCollect(client, cfg, {horizonHours, dryRun});
+	console.log(`  ${res.events.length} Ereignisse, ${res.errors} Fehler, ${Math.round((Date.now() - t0) / 1000)} s`);
+	for (const e of res.events.filter(e => e.watch_stop || /FAHRT_(GESTRICHEN|NICHT)/.test(e.event))) {
+		console.log(`  → ${e.event} ${e.trip_key} ${e.stop || ''} (${e.lead_time_h} h vor Soll)`);
+	}
+	if (res.errors && !res.trips) {
+		console.error('Keine einzige Fahrt geladen. Vermutlich sperrt die DB diese IP-Adresse (siehe README, Abschnitt „Grenzen“).');
+		process.exit(1);
+	}
 }

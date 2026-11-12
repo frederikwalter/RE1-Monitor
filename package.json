@@ -1,15 +1,13 @@
 {
   "name": "re1-monitor",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Dokumentiert Fahrplanänderungen des RE1 (München–Ingolstadt–Treuchtlingen–Nürnberg) über die Zeit",
   "type": "module",
   "private": true,
-  "engines": { "node": ">=18" },
+  "engines": { "node": ">=20" },
   "scripts": {
     "collect": "node collect.mjs",
-    "collect:short": "node collect.mjs --horizon 8",
     "iris": "node iris.mjs",
-    "report": "node report.mjs",
     "test": "node test/offline-test.mjs"
   },
   "dependencies": {

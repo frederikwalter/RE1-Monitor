@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RE1-Monitor</title>
+<style>
+:root {
+	color-scheme: light;
+	--page: #f4f3f0; --surface: #fcfcfb; --border: #e2e0da;
+	--text: #0b0b0b; --text-2: #52514e; --text-3: #7a7872;
+	--bar: #2a78d6; --bar-track: #ecebe6;
+	--good: #0ca30c; --critical: #d03b3b; --warning: #fab219;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		color-scheme: dark;
+		--page: #111110; --surface: #1a1a19; --border: #33332f;
+		--text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e85;
+		--bar: #3987e5; --bar-track: #262624;
+	}
+}
+* { box-sizing: border-box; }
+body {
+	margin: 0; background: var(--page); color: var(--text);
+	font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1000px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 4px; }
+p { margin: 0; }
+.lead { color: var(--text-2); max-width: 70ch; }
+.note { color: var(--text-3); font-size: 13px; }
+section, .tile {
+	background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+}
+section { padding: 20px; margin-top: 16px; }
+.status { margin-top: 16px; font-size: 13px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+.tile { padding: 16px; }
+.tile .label { color: var(--text-2); font-size: 13px; }
+.tile .value { font-size: 34px; font-weight: 650; line-height: 1.15; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.tile .sub { color: var(--text-3); font-size: 13px; }
+
+.bars { margin-top: 16px; display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 12px; align-items: center; }
+.bars .name { color: var(--text-2); font-size: 13px; white-space: nowrap; }
+.bars .track { background: var(--bar-track); border-radius: 4px; height: 18px; }
+.bars .fill { background: var(--bar); height: 100%; border-radius: 0 4px 4px 0; min-width: 0; transition: opacity .1s; }
+.bars .row { display: contents; }
+.bars .row:hover .fill { opacity: .8; }
+.bars .num { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
+.bars .day-split { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 2px 0; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+label { font-size: 13px; color: var(--text-2); }
+select {
+	font: inherit; color: var(--text); background: var(--surface);
+	border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; margin-left: 4px;
+}
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--text-2); font-weight: 500; font-size: 13px; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--text-2); }
+.empty { color: var(--text-3); padding: 12px 0; }
+#error { border-color: var(--critical); }
+a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+	<h1>RE1-Monitor</h1>
+	<p class="lead">Wann streicht die DB die Halte des RE1 in Roth und Nürnberg Hbf? Die Seite wertet aus, wie lange vor der planmäßigen Abfahrt eine Streichung im Fahrplan sichtbar wurde.</p>
+	<div class="status" id="status">Daten werden geladen …</div>
+
+	<section id="error" hidden></section>
+
+	<div id="content" hidden>
+		<div class="tiles" id="tiles"></div>
+
+		<section>
+			<h2>Wie lange vor der Sollzeit wurde gestrichen?</h2>
+			<p class="note">Halte, die beim ersten Abruf im Fahrplan standen und später gestrichen wurden. Der Zeitpunkt ist der erste Abruf, bei dem die Streichung sichtbar war; die Genauigkeit entspricht dem Abfrageintervall von einer Stunde.</p>
+			<div class="bars" id="histogram"></div>
+		</section>
+
+		<section>
+			<h2>Einzelne Streichungen</h2>
+			<div class="filters">
+				<label>Halt <select id="f-halt"></select></label>
+				<label>Betriebstag <select id="f-day"></select></label>
+			</div>
+			<div class="scroll"><table id="cancellations"></table></div>
+		</section>
+
+		<section id="iris-section" hidden>
+			<h2>Offizieller Streichungszeitpunkt (IRIS)</h2>
+			<p class="note">Zeitpunkt, zu dem die DB die Streichung in ihrem System angelegt hat (Feld <code>clt</code> der Timetables-API). Er hängt nicht vom Abfrageintervall ab.</p>
+			<div class="scroll"><table id="iris"></table></div>
+		</section>
+	</div>
+</main>
+
+<script type="module">
+import {parseCsv, buildReport} from './report.js';
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, ...children) => {
+	const n = document.createElement(tag);
+	for (const [k, v] of Object.entries(attrs)) k === 'class' ? n.className = v : n.setAttribute(k, v);
+	n.append(...children);
+	return n;
+};
+
+// Datenquelle: ?src=<Ordner> oder, auf GitHub Pages, der Branch "data" desselben Repos
+const dataBase = () => {
+	const src = new URLSearchParams(location.search).get('src');
+	if (src) return src.replace(/\/?$/, '/');
+	if (location.hostname.endsWith('.github.io')) {
+		const owner = location.hostname.split('.')[0];
+		const repo = location.pathname.split('/').filter(Boolean)[0];
+		return `https://raw.githubusercontent.com/${owner}/${repo}/data/`;
+	}
+	return '../data/';
+};
+const base = dataBase();
+const load = async (name, required = false) => {
+	const res = await fetch(base + name, {cache: 'no-store'});
+	if (!res.ok) {
+		if (required) throw new Error(`${name} konnte nicht geladen werden (HTTP ${res.status}).`);
+		return [];
+	}
+	return parseCsv(await res.text());
+};
+
+const fmtTime = (s) => s ? `${s.slice(8, 10)}.${s.slice(5, 7)}. ${s.slice(11, 16)}` : '–';
+const fmtDay = (s) => `${s.slice(8, 10)}.${s.slice(5, 7)}.${s.slice(0, 4)}`;
+const fmtLead = (h) => {
+	if (h === null || Number.isNaN(h)) return '–';
+	const abs = Math.abs(h);
+	const txt = abs >= 48 ? `${(abs / 24).toFixed(1).replace('.', ',')} Tage`
+		: abs >= 1 ? `${Math.floor(abs)} h ${String(Math.round(abs % 1 * 60)).padStart(2, '0')} min`
+		: `${Math.round(abs * 60)} min`;
+	return h < 0 ? `${txt} danach` : `${txt} vorher`;
+};
+const pct = (a, b) => b ? `${Math.round(a / b * 100)} %` : '–';
+const dirLabel = {N: '→ Nürnberg', S: '→ München'};
+
+const table = (node, head, rows, emptyText) => {
+	node.replaceChildren();
+	if (!rows.length) { node.append(el('caption', {class: 'empty'}, emptyText)); return; }
+	node.append(el('thead', {}, el('tr', {}, ...head.map(([h, cls]) => el('th', cls ? {class: cls} : {}, h)))));
+	node.append(el('tbody', {}, ...rows.map(r => el('tr', {}, ...r.map((c, i) => el('td', head[i][1] ? {class: head[i][1]} : {}, c))))));
+};
+
+const renderStatus = (runs, events) => {
+	const last = runs.at(-1);
+	const node = $('status');
+	node.replaceChildren();
+	if (last) {
+		const ageH = (Date.now() - new Date(last.run_at)) / 36e5;
+		const errors = Number(last.errors);
+		const state = ageH > 3 ? ['var(--critical)', 'Sammler steht seit'] : errors ? ['var(--warning)', 'Letzter Lauf mit Fehlern:'] : ['var(--good)', 'Letzter Lauf:'];
+		node.append(el('span', {}, el('span', {class: 'dot', style: `background:${state[0]}`}), `${state[1]} ${fmtTime(last.run_at)} Uhr`));
+		node.append(el('span', {}, `${last.trips} Fahrten geprüft, ${errors} Fehler`));
+		node.append(el('span', {}, `${runs.length} Läufe seit ${fmtTime(runs[0].run_at)}`));
+	} else if (events.length) {
+		node.append(el('span', {}, `Stand: ${fmtTime(events.at(-1).detected_at)} Uhr`));
+	}
+};
+
+const render = (rep) => {
+	const n = rep.cancelledLater.length;
+	const tile = (label, value, sub) => el('div', {class: 'tile'},
+		el('div', {class: 'label'}, label), el('div', {class: 'value'}, String(value)), el('div', {class: 'sub'}, sub));
+	$('tiles').replaceChildren(
+		tile('Beobachtete Fahrten', rep.trips, `Halte: ${rep.halts.join(', ') || '–'}`),
+		tile('Halte im Fahrplan', rep.planned, 'beim ersten Abruf als Halt geführt'),
+		tile('davon später gestrichen', n, `${pct(n, rep.planned)} der Halte im Fahrplan`),
+		tile('erst am Fahrtag gestrichen', rep.sameDay, `${pct(rep.sameDay, n)} der Streichungen`),
+	);
+
+	const max = Math.max(1, ...rep.histogram.map(b => b.count));
+	$('histogram').replaceChildren(...rep.histogram.flatMap(b => [
+		el('div', {class: 'row', title: `${b.label}: ${b.count} Streichungen (${pct(b.count, n)})`},
+			el('div', {class: 'name'}, b.label),
+			el('div', {class: 'track'}, el('div', {class: 'fill', style: `width:${b.count / max * 100}%`})),
+			el('div', {class: 'num'}, `${b.count}`)),
+	]));
+
+	// Filter
+	const days = [...new Set(rep.cancelledLater.map(r => r.serviceDate))].sort().reverse();
+	const fill = (sel, all, opts) => sel.replaceChildren(el('option', {value: ''}, all), ...opts.map(([v, t]) => el('option', {value: v}, t)));
+	fill($('f-halt'), 'alle', rep.halts.map(h => [h, h]));
+	fill($('f-day'), 'alle', days.map(d => [d, fmtDay(d)]));
+	const renderRows = () => {
+		const halt = $('f-halt').value, day = $('f-day').value;
+		const rows = rep.cancelledLater
+			.filter(r => (!halt || r.halt === halt) && (!day || r.serviceDate === day))
+			.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
+		table($('cancellations'),
+			[['Zug'], ['Richtung'], ['Halt'], ['Sollzeit'], ['Im Fahrplan seit'], ['Streichung erkannt'], ['Vorlauf', 'num'], ['']],
+			rows.map(r => [
+				r.train, dirLabel[r.direction] || '', r.halt, fmtTime(r.plannedTime), fmtTime(r.firstSeen),
+				fmtTime(r.cancelDetected), fmtLead(r.cancelLeadH),
+				r.restored ? el('span', {class: 'tag'}, 'später wiederhergestellt')
+					: r.sameDay ? el('span', {class: 'tag'}, 'am Fahrtag') : '',
+			]),
+			rep.cancelledLater.length ? 'Keine Streichung für diese Auswahl.' : 'Bisher wurde keine nachträgliche Streichung erkannt.');
+	};
+	$('f-halt').onchange = $('f-day').onchange = renderRows;
+	renderRows();
+
+	if (rep.iris.length) {
+		$('iris-section').hidden = false;
+		table($('iris'),
+			[['Zug'], ['Bahnhof'], ['Sollzeit'], ['Streichung angelegt'], ['Vorlauf', 'num'], ['']],
+			rep.iris.map(r => [r.train, r.station, fmtTime(r.plannedTime), fmtTime(r.createdAt), fmtLead(r.leadH),
+				r.sameDay ? el('span', {class: 'tag'}, 'am Fahrtag') : '']), '');
+	}
+	$('content').hidden = false;
+};
+
+try {
+	const [events, iris, runs] = await Promise.all([load('events.csv', true), load('iris_events.csv'), load('runs.csv')]);
+	renderStatus(runs, events);
+	render(buildReport(events, iris));
+} catch (err) {
+	$('status').textContent = '';
+	const box = $('error');
+	box.hidden = false;
+	box.append(el('h2', {}, 'Noch keine Daten'), el('p', {}, err.message),
+		el('p', {class: 'note'}, `Quelle: ${base} – die Datei entsteht mit dem ersten erfolgreichen Lauf des Sammlers.`));
+}
+</script>
+</body>
+</html>

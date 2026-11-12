@@ -1,5 +1,5 @@
 {
-  "userAgent": "re1-monitor (privates Fahrgast-Monitoring; Kontakt: BITTE-EMAIL-EINTRAGEN)",
+  "userAgent": "re1-monitor (privates Fahrgast-Monitoring; https://github.com/frederikwalter/RE1-Monitor)",
   "profile": "dbnav",
 
   "lineRegex": "^RE\\s*1(?!\\d)",
@@ -11,6 +11,7 @@
 
   "defaultHorizonHours": 72,
   "lookbackHours": 1,
+  "rescanHours": 6,
   "requestDelayMs": 1200,
   "maxRetries": 3,
 
