@@ -1,0 +1,19 @@
+{
+  "name": "re1-monitor",
+  "version": "1.0.0",
+  "description": "Dokumentiert Fahrplanänderungen des RE1 (München–Ingolstadt–Treuchtlingen–Nürnberg) über die Zeit",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "collect": "node collect.mjs",
+    "collect:short": "node collect.mjs --horizon 8",
+    "iris": "node iris.mjs",
+    "report": "node report.mjs",
+    "test": "node test/offline-test.mjs"
+  },
+  "dependencies": {
+    "db-vendo-client": "^6.11.3",
+    "fast-xml-parser": "^4.5.0"
+  }
+}
