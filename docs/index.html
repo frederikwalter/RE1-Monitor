@@ -116,7 +116,8 @@ a { color: inherit; }
 </main>
 
 <script type="module">
-import {parseCsv, buildReport} from './report.js';
+// Die Versionsnummer zwingt den Browser, nach einer Änderung an report.js die neue Fassung zu laden.
+import {parseCsv, buildReport} from './report.js?v=3';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...children) => {
@@ -141,7 +142,7 @@ const base = dataBase();
 const load = async (name, required = false) => {
 	const res = await fetch(base + name, {cache: 'no-store'});
 	if (!res.ok) {
-		if (required) throw new Error(`${name} konnte nicht geladen werden (HTTP ${res.status}).`);
+		if (required) throw Object.assign(new Error(`${name} konnte nicht geladen werden (HTTP ${res.status}).`), {noData: true});
 		return [];
 	}
 	return parseCsv(await res.text());
@@ -248,8 +249,10 @@ try {
 	$('status').textContent = '';
 	const box = $('error');
 	box.hidden = false;
-	box.append(el('h2', {}, 'Noch keine Daten'), el('p', {}, err.message),
-		el('p', {class: 'note'}, `Quelle: ${base} – die Datei entsteht mit dem ersten erfolgreichen Lauf des Sammlers.`));
+	box.append(el('h2', {}, err.noData ? 'Noch keine Daten' : 'Fehler bei der Auswertung'), el('p', {}, err.message),
+		el('p', {class: 'note'}, err.noData
+			? `Quelle: ${base} – die Datei entsteht mit dem ersten erfolgreichen Lauf des Sammlers.`
+			: 'Bitte die Seite ohne Cache neu laden (Cmd+Shift+R).'));
 }
 </script>
 </body>
