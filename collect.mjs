@@ -205,7 +205,9 @@ export const runCollect = async (client, cfg, {horizonHours, now = new Date(), d
 	const scannedOk = new Set();   // in diesem Lauf erfolgreich abgefragte Fenster
 	const scannedFail = new Set();
 	const linesSeen = {};
-	let errors = 0, boardRequests = 0, tripRequests = 0;
+	let errors = 0, boardRequests = 0, boardOk = 0, tripRequests = 0;
+	// Schlagen die ersten Anfragen alle fehl, sperrt die DB vermutlich die IP-Adresse: Lauf abbrechen
+	const blocked = () => !boardOk && errors >= 4;
 
 	const scanWindow = async (t) => {
 		const iso = t.toISOString();
@@ -218,6 +220,7 @@ export const runCollect = async (client, cfg, {horizonHours, now = new Date(), d
 					const res = await withRetry(() => client[kind](ids[anchor], {
 						when: t, duration: 60, remarks: false, stopovers: false,
 					}), {retries, label: `${kind} ${anchor} ${berlin(t)}`});
+					boardOk++;
 					for (const d of res[kind] || []) {
 						const name = d.line?.name || '';
 						linesSeen[name] = (linesSeen[name] || 0) + 1;
@@ -237,6 +240,7 @@ export const runCollect = async (client, cfg, {horizonHours, now = new Date(), d
 	const rescanMs = (cfg.rescanHours ?? 6) * HOUR;
 	for (let t = start; t < end; t = new Date(t.getTime() + HOUR)) {
 		const last = windows[t.toISOString()];
+		if (blocked()) break;
 		if (!last || now - new Date(last) >= rescanMs) await scanWindow(t);
 	}
 	for (const iso of Object.keys(windows)) if (new Date(iso) < start) delete windows[iso];
@@ -257,7 +261,7 @@ export const runCollect = async (client, cfg, {horizonHours, now = new Date(), d
 	const stale = []; // Schlüssel, deren Fahrt-ID nicht mehr funktioniert
 	for (const [key, meta] of Object.entries(index)) {
 		const planned = new Date(meta.anchorPlanned);
-		if (planned < start || planned >= end || meta.missing || !meta.tripId) continue;
+		if (blocked() || planned < start || planned >= end || meta.missing || !meta.tripId) continue;
 		try {
 			const st = await loadTrip(meta.tripId, Math.min(retries, 1));
 			if (st) current.set(st.key, st); else stale.push(key);
@@ -327,7 +331,7 @@ export const runCollect = async (client, cfg, {horizonHours, now = new Date(), d
 		}]);
 		writeJson(path.join(stateDir, 'lines_seen_at_anchor.json'), linesSeen);
 	}
-	return {trips: current.size, events, errors, boardRequests, tripRequests, linesSeen};
+	return {trips: current.size, events, errors, boardRequests, tripRequests, linesSeen, blocked: blocked()};
 };
 
 // ---------- CLI ----------
@@ -354,8 +358,8 @@ if (isMain(import.meta.url)) {
 	for (const e of res.events.filter(e => e.watch_stop || /FAHRT_(GESTRICHEN|NICHT)/.test(e.event))) {
 		console.log(`  → ${e.event} ${e.trip_key} ${e.stop || ''} (${e.lead_time_h} h vor Soll)`);
 	}
-	if (res.errors && !res.trips) {
-		console.error('Keine einzige Fahrt geladen. Vermutlich sperrt die DB diese IP-Adresse (siehe README, Abschnitt „Grenzen“).');
+	if (res.blocked) {
+		console.error('Abbruch: Alle Anfragen wurden abgelehnt. Vermutlich sperrt die DB diese IP-Adresse (siehe README, Abschnitt „Grenzen“).');
 		process.exit(1);
 	}
 }

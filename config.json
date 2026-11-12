@@ -4,6 +4,7 @@
 
   "lineRegex": "^RE\\s*1(?!\\d)",
   "anchorStations": ["Treuchtlingen"],
+  "stationIds": {"Treuchtlingen": "8000122"},
   "watchStations": ["Roth", "Nürnberg Hbf"],
 
   "southRegex": "München|Ingolstadt|Eichstätt|Dollnstein|Solnhofen|Petershausen|Pfaffenhofen|Rohrbach|Augsburg|Donauwörth|Otting",
