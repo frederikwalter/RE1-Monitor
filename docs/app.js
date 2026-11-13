@@ -151,7 +151,7 @@ const renderCalendar = (rep) => {
 	node.replaceChildren();
 	$('calendar-legend').replaceChildren(categoryLegend(rep.categories, {dot: true}));
 	if (!rep.dates.length) { node.append(el('caption', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')); return; }
-	node.append(el('thead', {}, el('tr', {}, el('th', {}, 'Abfahrt'), el('th', {}, 'Zug'),
+	node.append(el('thead', {}, el('tr', {}, el('th', {title: 'planmäßige Abfahrt am Startbahnhof'}, 'Abfahrt'), el('th', {}, 'Zug'),
 		...rep.dates.map(d => el('th', {class: 'c', title: fmtDay(d)}, el('span', {}, wd(d)), el('br'), `${d.slice(8, 10)}.${d.slice(5, 7)}.`)))));
 	const body = el('tbody');
 	for (const dir of ['N', 'S']) {
@@ -159,7 +159,7 @@ const renderCalendar = (rep) => {
 		if (!list.length) continue;
 		body.append(el('tr', {class: 'group'}, el('th', {colspan: String(rep.dates.length + 2)}, `Richtung ${dirLabel[dir].slice(2)}`)));
 		for (const t of list) {
-			body.append(el('tr', {}, el('td', {class: 'num'}, t.time), el('td', {}, t.train),
+			body.append(el('tr', {}, el('td', {class: 'num', title: `ab ${t.origin}`}, t.time), el('td', {}, t.train),
 				...rep.dates.map(d => {
 					const c = t.byDate[d];
 					return el('td', {class: 'c'}, c
@@ -192,7 +192,7 @@ const renderPies = (rep) => {
 		return [el('div', {class: 'dir'}, dirLabel[dir]),
 			el('div', {class: 'line'}, ...(list.length ? list.map(t => {
 				const days = total(t.counts);
-				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr, ${days} ${days === 1 ? 'Tag' : 'Tage'}: ${countsText(t.counts)}`},
+				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr ab ${t.origin}, ${days} ${days === 1 ? 'Tag' : 'Tage'}: ${countsText(t.counts)}`},
 					pie(t.counts), el('div', {class: 't'}, t.time), el('div', {}, t.train), el('div', {class: 'c'}, `${throughCount(t.counts)} von ${days}`));
 			}) : [el('span', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')]))];
 	};
@@ -330,7 +330,7 @@ const renderTrains = (rep) => {
 			[['Zug'], ['Richtung'], ['Abfahrt'], ['Kategorie'], ...rep.stations.map(s => [s]), ['Treuchtlingen'],
 				['Streichung angelegt'], ['Vorlauf', 'num'], ['Meldung'], ['']],
 			rows.map(t => [
-				t.train, dirLabel[t.direction] || '', `${wd(t.serviceDate)} ${fmtTime(t.plannedTime)}`,
+				t.train, dirLabel[t.direction] || '', `${wd(t.serviceDate)} ${fmtTime(t.departure)} ${t.origin}`,
 				t.type === 'pendel'
 					? el('span', {}, el('i', {class: 'sw none'}, 'P'), `Pendelzug${t.replaces ? ` für ${t.replaces}` : ''}${t.cancelled ? ', Halte gestrichen' : ''}`)
 					: el('span', {title: t.categoryNote}, swatch(t.category), catText(t.category)),

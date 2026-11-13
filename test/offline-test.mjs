@@ -131,6 +131,7 @@ const t4041 = rep.trains.find(t => t.number === '4041');
 assert.equal(t4041.type, 'durch');
 assert.equal(t4041.outcome, 'treuchtlingen');
 assert.equal(t4041.contextDelay, 12);
+assert.deepEqual([t4041.departure, t4041.origin], ['2026-11-14T13:28:00', 'München Hbf'], 'Abfahrt am Startbahnhof aus der Fahrtkennung, nicht die Zeit in Roth (15:26)');
 assert.equal(rep.trains.find(t => t.number === '39540').type, 'pendel');
 assert.equal(rep.trains.find(t => t.number === '4042').delay, 15);
 assert.equal(rep.run, 2);
@@ -148,6 +149,7 @@ assert.deepEqual([rep.delays.halts.n, rep.delays.halts.late], [2, 1], 'RE 4042 (
 assert.deepEqual([rep.delays.treuchtlingen.n, rep.delays.treuchtlingen.late], [1, 1]);
 assert.deepEqual(rep.byTrain.N.map(t => [t.train, t.byDate['2026-11-14'].category, t.counts.noShuttle]), [['RE 4041', 'noShuttle', 1]]);
 assert.deepEqual(rep.byTrain.S.map(t => [t.train, t.byDate['2026-11-14'].category]), [['RE 4042', 'late']]);
+assert.deepEqual(rep.byTrain.N.map(t => [t.time, t.origin]), [['13:28', 'München Hbf']], 'Kalender zeigt die Abfahrt in München');
 assert.deepEqual(rep.coverage.gaps.map(g => g.hours), [8, 7], 'Lücken 08:00–16:00 und 16:00–23:00');
 assert.equal(rep.coverage.lossy.length, 0);
 

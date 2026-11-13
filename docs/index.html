@@ -218,7 +218,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 
 		<section class="long">
 			<h2>Kalender: jeder Zug an jedem Tag</h2>
-			<p class="note">Eine Zeile je Zugnummer, sortiert nach üblicher Abfahrtszeit am ersten beobachteten Halt. Farbe und Zeichen geben die Kategorie an; die Einzelheiten (Verspätung, Pendelzug, Umstiegszeit) stehen im Tooltip der Zelle.</p>
+			<p class="note">Eine Zeile je Zugnummer, sortiert nach üblicher planmäßiger Abfahrtszeit am Startbahnhof (München Hbf bzw. Nürnberg Hbf; Tooltip der Uhrzeit). Farbe und Zeichen geben die Kategorie an; die Einzelheiten (Verspätung, Pendelzug, Umstiegszeit) stehen im Tooltip der Zelle.</p>
 			<div id="calendar-legend"></div>
 			<div class="scroll"><table class="calendar" id="calendar"></table></div>
 		</section>
@@ -284,6 +284,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 				<li><strong>Quelle:</strong> offizielle Timetables-API der Deutschen Bahn (DB API Marketplace), stündlich abgefragt für Roth, Nürnberg Hbf und Treuchtlingen. Die API liefert den Sollfahrplan rund 18 Stunden im Voraus und alle Änderungen daran.</li>
 				<li><strong>Durchgehender Zug:</strong> Laut Fahrplan führt der Laufweg über München oder Ingolstadt. <strong>Pendelzug:</strong> fährt nur zwischen Treuchtlingen und Nürnberg; er wird getrennt gezählt.</li>
 				<li><strong>Umstieg:</strong> Zubringer ist der in Treuchtlingen endende Zug bzw. der Pendelzug aus Nürnberg, Anschluss der jeweils andere. Maßgeblich sind die tatsächlichen Zeiten aus der letzten Meldung der DB (in Treuchtlingen minutengenau protokolliert). Der Umstieg gilt als erreichbar, wenn der Anschlusszug nicht vor der Ankunft des Zubringers abfuhr.</li>
+				<li><strong>Abfahrt:</strong> planmäßige Abfahrt des Zuges an seinem Startbahnhof laut Sollfahrplan (z. B. RE 4040 ab München Hbf, nicht die Zeit in Roth). Die DB führt sie in der Kennung jeder Fahrt mit. Sie gilt für Kalender, Kreise, die Tabelle aller Züge und den Filter nach Tageszeit; der Betriebstag ist der Tag dieser Abfahrt.</li>
 				<li><strong>Planmäßig:</strong> Kein Halt des Zuges in Roth oder Nürnberg Hbf ist gestrichen. <strong>Endet/beginnt in Treuchtlingen:</strong> Halte gestrichen, der Zug hält aber in Treuchtlingen. <strong>Nicht in Treuchtlingen gesehen:</strong> Halte gestrichen und auch kein Halt in Treuchtlingen.</li>
 				<li><strong>Kategorien je Zug und Tag</strong> (Kalender, Balken, Kreise): <em>durchgehend, pünktlich</em> bzw. <em>verspätet</em> – planmäßig, höchste Verspätung in Roth/Nürnberg unter bzw. ab 6 Minuten; <em>nur bis/ab Treuchtlingen</em> mit <em>Pendelzug erreichbar</em>, <em>kein Pendelzug</em> oder <em>Pendelzug nicht erreichbar</em> (auch: Pendelzug ausgefallen); <em>nicht in Treuchtlingen gesehen</em>.</li>
 				<li><strong>Zeitpunkt der Streichung:</strong> Feld <code>clt</code> der API, also wann die DB die Streichung in ihrem System angelegt hat. Er hängt nicht vom Abfragezeitpunkt ab.</li>

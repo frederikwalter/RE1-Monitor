@@ -89,6 +89,12 @@ const median = (xs) => {
 };
 // Die Halt-ID hat die Form <Fahrt>-<Startzeit>-<Nummer des Halts>; ohne die Nummer bezeichnet sie die Fahrt.
 const tripOf = (stopId) => stopId.replace(/-\d+$/, '');
+// Die Startzeit (YYMMddHHmm) ist die planmäßige Abfahrt der Fahrt an ihrem Startbahnhof.
+// Sie gilt hier überall als "Abfahrt" des Zuges (Kalender, Kreise, Tabelle, Tageszeitfilter).
+const startOf = (stopId) => {
+	const m = /-(\d{10})-\d+$/.exec(stopId);
+	return m ? `20${m[1].slice(0, 2)}-${m[1].slice(2, 4)}-${m[1].slice(4, 6)}T${m[1].slice(6, 8)}:${m[1].slice(8, 10)}:00` : '';
+};
 const weekday = (date) => new Date(`${date}T12:00:00Z`).getUTCDay(); // 0 = Sonntag
 const ts = (s) => new Date(`${s}Z`).getTime(); // nur für Abstände zwischen zwei Ortszeiten
 const minutesBetween = (a, b) => (a && b) ? Math.round((ts(b) - ts(a)) / 60000) : null;
@@ -105,7 +111,7 @@ const matches = (t, f) => {
 	if (f.days === 'werktags' && (wd === 0 || wd === 6)) return false;
 	if (f.days === 'wochenende' && wd >= 1 && wd <= 5) return false;
 	if (f.hours === 'hvz') {
-		const h = Number(t.plannedTime.slice(11, 13));
+		const h = Number((t.departure || t.plannedTime).slice(11, 13));
 		if (!((h >= 6 && h < 9) || (h >= 16 && h < 19))) return false;
 	}
 	return true;
@@ -162,7 +168,7 @@ const buildTransfers = (halts, filter, now) => {
 			: (arrActual > now || depActual > now) ? 'open'
 			: minutesBetween(arrActual, depActual) >= MIN_TRANSFER_MIN ? 'reached' : 'missed';
 		allPairs.push({
-			direction: t.direction, serviceDate: key(t).slice(0, 10), plannedTime: key(t),
+			direction: t.direction, serviceDate: key(t).slice(0, 10), plannedTime: key(t), departure: t.departure,
 			through: t, shuttle: best, from, to,
 			arrPlanned: from.arrPlanned, arrActual, platformArr: from.platformArr,
 			depPlanned: to.depPlanned, depActual, platformDep: to.platformDep,
@@ -175,7 +181,7 @@ const buildTransfers = (halts, filter, now) => {
 	}
 
 	const pairs = allPairs.filter(p => matches(p, filter)).sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
-	const pastThrough = through.filter(t => key(t) < now && matches({serviceDate: key(t).slice(0, 10), plannedTime: key(t)}, filter));
+	const pastThrough = through.filter(t => key(t) < now && matches({serviceDate: key(t).slice(0, 10), plannedTime: key(t), departure: t.departure}, filter));
 	const paired = new Set(allPairs.map(p => p.through));
 	const counts = Object.fromEntries(Object.keys(TRANSFER_RESULTS).map(k => [k, pairs.filter(p => p.result === k).length]));
 	const decided = pairs.filter(p => p.result !== 'open');
@@ -263,6 +269,9 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 			arrPlanned: last.arrival_planned, arrActual: last.arrival_actual, platformArr: last.platform_arrival,
 			depPlanned: last.departure_planned, depActual: last.departure_actual, platformDep: last.platform_departure,
 			firstSeen: first.detected_at,
+			// Startbahnhof laut Sollfahrplan: ohne geplante Ankunft beginnt der Zug hier
+			departure: startOf(first.stop_id) || first.planned_time,
+			origin: last.arrival_planned ? (first.planned_path || '').split(' → ')[0].split('|')[0] || first.station : first.station,
 			trip: tripOf(first.stop_id), train: first.train, station: first.station, role: first.role,
 			direction: first.direction, plannedTime: first.planned_time, serviceDate: first.planned_time.slice(0, 10),
 			status: last.new_status, cancelled,
@@ -293,7 +302,8 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		const served = watch.filter(h => !h.cancelled && h.delay !== null);
 		allTrains.push({
 			trip: watch[0].trip, train: watch[0].train, number: watch[0].train.replace(/\D/g, ''), direction: watch[0].direction,
-			plannedTime: watch[0].plannedTime, serviceDate: watch[0].serviceDate,
+			plannedTime: watch[0].plannedTime, departure: watch[0].departure, origin: watch[0].origin,
+			serviceDate: watch[0].departure.slice(0, 10),
 			past: watch.at(-1).plannedTime < now,
 			type: through ? 'durch' : 'pendel',
 			halts: Object.fromEntries(watch.map(h => [h.station, h])), context,
@@ -305,7 +315,7 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 			messages: [...new Set(cancelledHalts.flatMap(h => h.messages))].sort(),
 		});
 	}
-	allTrains.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
+	allTrains.sort((a, b) => b.departure.localeCompare(a.departure));
 	const transfers = buildTransfers(halts, filter, now);
 	for (const t of allTrains) {
 		t.replaces = t.type === 'pendel' ? transfers.replaces.get(t.trip) || '' : '';
@@ -334,18 +344,19 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 	const numMap = new Map();
 	for (const t of run) {
 		const k = `${t.direction}|${t.number}`;
-		if (!numMap.has(k)) numMap.set(k, {train: t.train, direction: t.direction, times: {}, counts: zeroCounts(), byDate: {}});
+		if (!numMap.has(k)) numMap.set(k, {train: t.train, direction: t.direction, times: {}, origins: [], counts: zeroCounts(), byDate: {}});
 		const g = numMap.get(k);
 		g.counts[t.category]++;
 		g.byDate[t.serviceDate] = {category: t.category, note: t.categoryNote};
-		const hm = t.plannedTime.slice(11, 16);
+		g.origins.push(t.origin);
+		const hm = t.departure.slice(11, 16);
 		g.times[hm] = (g.times[hm] || 0) + 1;
 	}
 	const byTrain = {N: [], S: []};
 	for (const g of numMap.values()) {
-		// übliche Abfahrtszeit = die häufigste
+		// übliche Abfahrtszeit am Startbahnhof = die häufigste
 		const time = Object.entries(g.times).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
-		(byTrain[g.direction] ||= []).push({train: g.train, time, counts: g.counts, byDate: g.byDate});
+		(byTrain[g.direction] ||= []).push({train: g.train, time, origin: mostCommon(g.origins), counts: g.counts, byDate: g.byDate});
 	}
 	for (const list of Object.values(byTrain)) list.sort((a, b) => a.time.localeCompare(b.time));
 
