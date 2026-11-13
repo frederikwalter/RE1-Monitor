@@ -1,8 +1,9 @@
 name: RE1-Monitor
 
 on:
+  # Ersatz-Zeitplan: GitHub startet geplante Läufe oft verspätet oder gar nicht.
+  # Hauptauslöser ist cron-job.org (stündlich um :53) über workflow_dispatch, siehe README.
   schedule:
-    # stündlich; Minute abseits der vollen Stunde, weil GitHub dort unter Last Läufe verschiebt oder auslässt
     - cron: '23 * * * *'
   workflow_dispatch:
 

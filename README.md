@@ -2,7 +2,7 @@
 
 Dieses Tool sammelt Belege dafür, wie der RE1 (München – Ingolstadt – Nürnberg) während der Sperrung der Schnellfahrstrecke vom 30.10. bis 12.12.2026 tatsächlich fährt: Wie viele Züge halten wie geplant in Roth und Nürnberg Hbf, wie viele enden stattdessen in Treuchtlingen, wie kurzfristig streicht die DB die Halte, und wie verspätet sind die Züge? Ziel ist eine belastbare Grundlage für eine Beschwerde.
 
-Ein GitHub-Actions-Workflow fragt die DB jede Stunde ab und legt die Ergebnisse auf dem Branch `data` ab. Die Auswertung steht als Webseite bereit: <https://frederikwalter.github.io/RE1-Monitor/>
+Ein GitHub-Actions-Workflow fragt die DB ab und legt die Ergebnisse auf dem Branch `data` ab. Gestartet wird er stündlich von außen über [cron-job.org](https://cron-job.org); der eigene Zeitplan von GitHub dient nur als Ersatz. Die Auswertung steht als Webseite bereit: <https://frederikwalter.github.io/RE1-Monitor/>
 
 ## Wie es funktioniert
 
@@ -44,7 +44,16 @@ Die erste Fassung fragte die Schnittstelle von bahn.de / DB Navigator ab, weil s
 2. API-Key holen: Auf <https://developers.deutschebahn.com> registrieren, eine Anwendung anlegen und die API **„Timetables“** abonnieren.
 3. Client-ID und API-Key unter *Settings → Secrets and variables → Actions* als `DB_CLIENT_ID` und `DB_API_KEY` eintragen.
 4. *Settings → Pages*: Quelle „Deploy from a branch“, Branch `main`, Ordner `/docs`.
-5. *Actions → RE1-Monitor → Run workflow* startet den ersten Lauf. Danach läuft der Workflow stündlich. Den Branch `data` legt er selbst an.
+5. *Actions → RE1-Monitor → Run workflow* startet den ersten Lauf. Den Branch `data` legt er selbst an.
+6. **Externer Auslöser** (der Zeitplan von GitHub allein ist unzuverlässig):
+   - Unter *GitHub → Settings → Developer settings → Fine-grained tokens* ein Token anlegen: nur dieses Repository, Berechtigung **Actions: Read and write**, sonst nichts. Ablaufdatum nach dem Ende der Sperrung wählen.
+   - Auf <https://cron-job.org> einen Job anlegen:
+     - URL: `https://api.github.com/repos/frederikwalter/RE1-Monitor/actions/workflows/monitor.yml/dispatches`
+     - Zeitplan: stündlich zu Minute 53 (versetzt zum GitHub-Zeitplan um :23)
+     - „Requires HTTP authentication“ **aus**lassen; das Token steht im Header.
+     - *Advanced*: Methode `POST`, Headers `Authorization: Bearer <Token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json`; Body `{"ref":"main"}`
+     - Benachrichtigung bei Fehlern einschalten.
+   - Mit „Run now“ testen: GitHub antwortet mit **204**, und unter *Actions* erscheint ein Lauf mit Auslöser `workflow_dispatch`. 401/403/404 heißt: Token oder URL falsch.
 
 ## Auswertung
 
@@ -102,7 +111,7 @@ DB_API_KEY=...
 
 ## Alternativen zum Dauerbetrieb
 
-Die offizielle API lässt sich von überall abfragen. GitHub Actions genügt deshalb; geplante Läufe starten dort zwar oft 5–30 Minuten verspätet und fallen unter Last gelegentlich ganz aus, der Streichungszeitpunkt stammt aber von der DB und bleibt exakt. Bei einem neuen Repository kann es einige Stunden dauern, bis der Zeitplan greift. Wer lieber einen eigenen Rechner nutzt (Raspberry Pi, Mietserver), braucht nur einen Cron-Eintrag:
+Die offizielle API lässt sich von überall abfragen. GitHub Actions genügt deshalb als Laufzeitumgebung. Geplante Läufe starten dort aber oft 5–30 Minuten verspätet und fallen unter Last auch ganz aus; deshalb stößt cron-job.org den Workflow an (siehe *Einrichtung*), und der GitHub-Zeitplan läuft nur als Ersatz mit. Meist sammelt das Tool so zweimal pro Stunde (:23 und :53). Doppelte Läufe schaden nicht: Der Sammler vergleicht mit dem letzten Stand, und `concurrency` im Workflow reiht sie nacheinander ein. Der Streichungszeitpunkt stammt ohnehin von der DB und hängt nicht vom Lauf ab. Wer lieber einen eigenen Rechner nutzt (Raspberry Pi, Mietserver), braucht nur einen Cron-Eintrag:
 
 ```bash
 git clone git@github.com:frederikwalter/RE1-Monitor.git && cd RE1-Monitor && npm ci
@@ -114,7 +123,7 @@ crontab -e
 7 * * * * cd $HOME/RE1-Monitor && DB_CLIENT_ID=xxx DB_API_KEY=yyy node collect.mjs >> cron.log 2>&1; cd data && git add -A && git commit -qm "Daten $(date '+\%F \%H:\%M')" && git push -q origin HEAD:data
 ```
 
-Schalte in diesem Fall den Workflow unter *Actions* ab, damit nicht zwei Sammler auf denselben Branch schreiben.
+Schalte in diesem Fall den Workflow unter *Actions* und den Job auf cron-job.org ab, damit nicht zwei Sammler auf denselben Branch schreiben.
 
 ## Grenzen
 
@@ -124,7 +133,8 @@ Schalte in diesem Fall den Workflow unter *Actions* ab, damit nicht zwei Sammler
 - Die Ist-Zeit eines Umstiegs ist die letzte Meldung der DB, die der stündliche Sammler gesehen hat. Liefert die API einen Zug nach seiner Abfahrt nicht mehr, kann das eine Prognose von bis zu einer Stunde vor der Abfahrt sein.
 - Fehlt bei einer Streichung das Feld `clt`, steht in der Auswertung der Zeitpunkt des ersten Abrufs (mit `*` markiert, Genauigkeit eine Stunde).
 - Läuft der Sammler länger als etwa einen Tag nicht, fehlen die Halte dieser Zeit.
-- GitHub schaltet geplante Workflows ab, wenn ein Repository 60 Tage lang keine Aktivität zeigt.
+- GitHub schaltet geplante Workflows ab, wenn ein Repository 60 Tage lang keine Aktivität zeigt. Das betrifft nur den Ersatz-Zeitplan, nicht den Auslöser über cron-job.org.
+- Der externe Auslöser funktioniert nur, solange das Token gültig ist. Läuft es ab, meldet cron-job.org Fehler (401).
 
 ## Beschwerde
 
