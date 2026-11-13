@@ -25,7 +25,14 @@
     "26111316": true,
     "26111317": true,
     "26111318": true,
-    "26111319": true
+    "26111319": true,
+    "26111320": true,
+    "26111321": true,
+    "26111322": true,
+    "26111323": true,
+    "26111400": true,
+    "26111401": true,
+    "26111403": true
   },
   "stops": {
     "4261737417841218390-2611121704-100": {
@@ -585,6 +592,83 @@
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
         "ps": "a"
+      },
+      "added": true
+    },
+    "3804722052049511935-2611132107-100": {
+      "tl": {
+        "c": "RB",
+        "n": "4041",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611132140",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf|Roth",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611132140",
+        "pp": "4",
+        "l": "RE1",
+        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "-7173313963166475560-2611131908-100": {
+      "tl": {
+        "c": "RE",
+        "n": "4037",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611131940",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf|Roth",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611131940",
+        "pp": "4",
+        "l": "RE1",
+        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "-7492429468465532583-2611131904-100": {
+      "tl": {
+        "c": "RB",
+        "n": "4040",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611132022",
+        "pp": "1",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611132022",
+        "l": "RE1",
+        "ppth": "Roth|Nürnberg Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "3053750877042388525-2611132221-1": {
+      "tl": {
+        "c": "RE",
+        "n": "39544",
+        "t": "s"
+      },
+      "dp": {
+        "pt": "2611132221",
+        "pp": "3",
+        "l": "RE1",
+        "ppth": "Roth|Nürnberg Hbf"
       },
       "added": true
     }
