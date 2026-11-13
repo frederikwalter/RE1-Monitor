@@ -52,7 +52,7 @@ Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` 
 
 - eine **Zusammenfassung** als Fließtext zum Kopieren, mit Gegenüberstellung von Ankündigung und Beobachtung, und eine Druckfassung („Drucken / als PDF speichern“);
 - einen Abschnitt **Strecke und Sperrung** mit der Presseinformation der DB vom 09.10.2026 und Presseberichten als Quellen;
-- Kennzahlen, Züge pro Tag, einen **Kalender** (jeder Zug an jedem Tag) und Kreisdiagramme je Zug;
+- Kennzahlen, Züge pro Tag, einen **Kalender** (jeder Zug an jedem Tag) und Kreisdiagramme je Zug, jeweils nach Kategorie (siehe unten);
 - den **Umstieg in Treuchtlingen**: welche Züge einen Pendelzug hatten, ob der Umstieg erreichbar war (je Verbindung und Tag), geplante und tatsächliche Umstiegszeit, Gleise (auch als CSV);
 - Vorlauf der Streichungen, gemeldete **Gründe**, **Verspätungen**;
 - eine Tabelle aller Züge (auch als CSV herunterladbar), **Datenqualität** (Erfassungslücken) und **Methodik**.
@@ -60,6 +60,8 @@ Die Seite `docs/index.html` lädt `events.csv` und `runs.csv` vom Branch `data` 
 Ein Filter für Zeitraum, Wochentage und Hauptverkehrszeit wirkt auf alle Abschnitte.
 
 **Begriffe:** *Durchgehender Zug* – Laufweg laut Fahrplan über München oder Ingolstadt. *Pendelzug* – nur Treuchtlingen–Nürnberg, wird getrennt gezählt. *Planmäßig* – kein Halt in Roth oder Nürnberg Hbf gestrichen. *Endet/beginnt in Treuchtlingen* – Halte gestrichen, Zug hält aber in Treuchtlingen. *Umstieg* – Jedem in Treuchtlingen endenden (bzw. beginnenden) durchgehenden Zug wird der Pendelzug derselben Richtung mit der nächstgelegenen Sollzeit zugeordnet, höchstens 30 Minuten entfernt. Pendelzüge erkennt das Tool selbst, Zugnummern sind nicht hinterlegt. *Erreichbar* heißt: Der Anschlusszug fuhr laut letzter Meldung der DB nicht vor der Ankunft des Zubringers ab (Mindestumstiegszeit 0 Minuten, `MIN_TRANSFER_MIN` in `docs/report.js`).
+
+**Kategorien je Zug und Tag** (Kalender, Balken, Kreise): Blau = durchgehend bis bzw. ab Nürnberg, *pünktlich* (✓, höchste Verspätung in Roth/Nürnberg unter 6 Minuten) oder *verspätet* (+). Orange bis Rot = nur bis bzw. ab Treuchtlingen, *Pendelzug erreichbar* (U), *kein Pendelzug* (T) oder *Pendelzug nicht erreichbar* bzw. ausgefallen (✕). Grau = Halte gestrichen und auch in Treuchtlingen nicht gesehen (–). Die Farben sind zwei geordnete Abstufungen, mit dem Prüfskript des dataviz-Skills für hellen und dunklen Hintergrund validiert; jedes Feld trägt zusätzlich sein Zeichen.
 
 **Meldungscodes:** Die DB veröffentlicht keine Liste. Die Klartexte stammen aus dem Open-Source-Projekt [Travel::Status::DE::IRIS](https://github.com/derf/Travel-Status-DE-IRIS) und sind nicht amtlich.
 

@@ -10,8 +10,10 @@
 	--page: #f4f3f0; --surface: #fcfcfb; --border: #e2e0da;
 	--text: #0b0b0b; --text-2: #52514e; --text-3: #7a7872;
 	--bar: #2a78d6; --bar-track: #ecebe6;
-	/* Ausgänge: validiert mit dem dataviz-Prüfskript (CVD-Abstand ≥ 24, Kontrast ≥ 3:1) */
-	--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-neutral: #a8a69f;
+	/* Kategorien je Zug und Tag: zwei Abstufungen (Blau: durchgehend, Orange bis Rot: nur bis/ab Treuchtlingen),
+	   je als Ordinal-Rampe mit dem dataviz-Prüfskript validiert (hell und dunkel) */
+	--c-ontime: #1d5bb0; --c-late: #6ea8ea; --c-reached: #f0a24a; --c-noShuttle: #d75a1a; --c-missed: #9a2018;
+	--c-gone: #8f8d86; --c-open: #d4d2cb; --c-open-ink: #0b0b0b;
 	--good: #0ca30c; --critical: #d03b3b; --warning: #fab219;
 }
 @media (prefers-color-scheme: dark) {
@@ -20,7 +22,7 @@
 		--page: #111110; --surface: #1a1a19; --border: #33332f;
 		--text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e85;
 		--bar: #3987e5; --bar-track: #262624;
-		--o-planned: #3987e5; --o-treuchtlingen: #d95926; --o-gone: #9085e9; --o-neutral: #5c5b56;
+		--c-gone: #77756e; --c-open: #4a4945; --c-open-ink: #f0efec;
 	}
 }
 * { box-sizing: border-box; }
@@ -74,10 +76,18 @@ button:hover { border-color: var(--text-3); }
 .stack div:last-child { border-radius: 0 4px 4px 0; }
 .stack div:only-child { border-radius: 4px; }
 
-.o-planned { background: var(--o-planned); }
-.o-treuchtlingen { background: var(--o-treuchtlingen); }
-.o-gone { background: var(--o-gone); }
-.o-neutral { background: var(--o-neutral); }
+.c-ontime { background: var(--c-ontime); } .pie .c-ontime { fill: var(--c-ontime); }
+.c-late { background: var(--c-late); color: #0b0b0b !important; } .pie .c-late { fill: var(--c-late); }
+.c-reached { background: var(--c-reached); color: #0b0b0b !important; } .pie .c-reached { fill: var(--c-reached); }
+.c-noShuttle { background: var(--c-noShuttle); } .pie .c-noShuttle { fill: var(--c-noShuttle); }
+.c-missed { background: var(--c-missed); } .pie .c-missed { fill: var(--c-missed); }
+.c-gone { background: var(--c-gone); } .pie .c-gone { fill: var(--c-gone); }
+.c-open { background: var(--c-open); color: var(--c-open-ink) !important; } .pie .c-open { fill: var(--c-open); }
+.sw.none { background: none; color: var(--text-3); box-shadow: inset 0 0 0 1px var(--border); }
+.catlegend { margin-top: 12px; display: grid; gap: 6px; font-size: 13px; color: var(--text-2); }
+.catlegend .group { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+.catlegend .gtitle { color: var(--text); font-weight: 600; flex: 0 0 17.5em; white-space: nowrap; }
+@media (max-width: 600px) { .catlegend .gtitle { flex-basis: 100%; } }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 12px; font-size: 13px; color: var(--text-2); }
 .sw {
 	display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 3px;
@@ -103,8 +113,6 @@ table.calendar { width: auto; }
 .pie svg { display: block; margin: 0 auto 4px; }
 .pie .t { color: var(--text); font-variant-numeric: tabular-nums; font-size: 13px; }
 .pie .c { font-variant-numeric: tabular-nums; }
-.pie .a { fill: var(--o-planned); }
-.pie .b { fill: var(--o-treuchtlingen); }
 .pie path { stroke: var(--surface); stroke-width: 2; stroke-linejoin: round; }
 
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; }
@@ -137,7 +145,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 		color-scheme: light;
 		--page: #fff; --surface: #fff; --border: #d4d2cc; --text: #000; --text-2: #333; --text-3: #555;
 		--bar: #2a78d6; --bar-track: #eee;
-		--o-planned: #2a78d6; --o-treuchtlingen: #eb6834; --o-gone: #6250d6; --o-neutral: #a8a69f;
+		--c-gone: #8f8d86; --c-open: #d4d2cb; --c-open-ink: #0b0b0b;
 	}
 	* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	body { font-size: 11pt; }
@@ -203,21 +211,22 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 
 		<section>
 			<h2>Durchgehende Züge pro Tag</h2>
-			<p class="note">Züge, die laut Sollfahrplan zwischen München bzw. Ingolstadt und Nürnberg über Roth fahren. Planmäßig heißt: kein Halt in Roth oder Nürnberg Hbf gestrichen. Gezählt werden nur Züge, deren Abfahrt vorbei ist. Pendelzüge zwischen Treuchtlingen und Nürnberg sind nicht enthalten.</p>
+			<p class="note">Züge, die laut Sollfahrplan zwischen München bzw. Ingolstadt und Nürnberg über Roth fahren, aufgeteilt danach, was Reisende nach bzw. von Roth und Nürnberg erlebt haben. Durchgehend heißt: kein Halt in Roth oder Nürnberg Hbf gestrichen; maßgeblich für die Verspätung ist der höchste Wert an diesen Halten. Gezählt werden nur Züge, deren Abfahrt vorbei ist. Pendelzüge sind nicht eigens gezählt; sie entscheiden, ob ein Zug „Pendelzug erreichbar“ oder „nicht erreichbar“ ist.</p>
 			<div id="days-legend"></div>
 			<div class="bars" id="days"></div>
 		</section>
 
 		<section class="long">
 			<h2>Kalender: jeder Zug an jedem Tag</h2>
-			<p class="note">Eine Zeile je Zugnummer, sortiert nach üblicher Abfahrtszeit am ersten beobachteten Halt. Ein Punkt heißt: an diesem Tag nicht beobachtet.</p>
+			<p class="note">Eine Zeile je Zugnummer, sortiert nach üblicher Abfahrtszeit am ersten beobachteten Halt. Farbe und Zeichen geben die Kategorie an; die Einzelheiten (Verspätung, Pendelzug, Umstiegszeit) stehen im Tooltip der Zelle.</p>
 			<div id="calendar-legend"></div>
 			<div class="scroll"><table class="calendar" id="calendar"></table></div>
 		</section>
 
 		<section>
 			<h2>Jeder Zug im Überblick</h2>
-			<p class="note">Ein Kreis je Zug, sortiert nach Abfahrtszeit: an wie vielen Tagen planmäßig (blau) und an wie vielen mit gestrichenen Halten (orange). Darunter beide Zahlen.</p>
+			<p class="note">Ein Kreis je Zug, sortiert nach Abfahrtszeit: Anteil der Tage je Kategorie. Darunter, an wie vielen der beobachteten Tage der Zug durchgehend fuhr.</p>
+			<div id="pies-legend"></div>
 			<div class="pies" id="pies"></div>
 		</section>
 
@@ -255,7 +264,7 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 		<section class="long">
 			<h2>Alle Züge</h2>
 			<div class="filters">
-				<label>Ausgang <select id="f-status"></select></label>
+				<label>Kategorie <select id="f-status"></select></label>
 				<label>Betriebstag <select id="f-day"></select></label>
 				<button id="download" type="button">Als CSV herunterladen</button>
 			</div>
@@ -276,12 +285,13 @@ blockquote { margin: 10px 0 0; padding: 4px 0 4px 14px; border-left: 3px solid v
 				<li><strong>Durchgehender Zug:</strong> Laut Fahrplan führt der Laufweg über München oder Ingolstadt. <strong>Pendelzug:</strong> fährt nur zwischen Treuchtlingen und Nürnberg; er wird getrennt gezählt.</li>
 				<li><strong>Umstieg:</strong> Zubringer ist der in Treuchtlingen endende Zug bzw. der Pendelzug aus Nürnberg, Anschluss der jeweils andere. Maßgeblich sind die tatsächlichen Zeiten aus der letzten Meldung der DB (in Treuchtlingen minutengenau protokolliert). Der Umstieg gilt als erreichbar, wenn der Anschlusszug nicht vor der Ankunft des Zubringers abfuhr.</li>
 				<li><strong>Planmäßig:</strong> Kein Halt des Zuges in Roth oder Nürnberg Hbf ist gestrichen. <strong>Endet/beginnt in Treuchtlingen:</strong> Halte gestrichen, der Zug hält aber in Treuchtlingen. <strong>Nicht in Treuchtlingen gesehen:</strong> Halte gestrichen und auch kein Halt in Treuchtlingen.</li>
+				<li><strong>Kategorien je Zug und Tag</strong> (Kalender, Balken, Kreise): <em>durchgehend, pünktlich</em> bzw. <em>verspätet</em> – planmäßig, höchste Verspätung in Roth/Nürnberg unter bzw. ab 6 Minuten; <em>nur bis/ab Treuchtlingen</em> mit <em>Pendelzug erreichbar</em>, <em>kein Pendelzug</em> oder <em>Pendelzug nicht erreichbar</em> (auch: Pendelzug ausgefallen); <em>nicht in Treuchtlingen gesehen</em>.</li>
 				<li><strong>Zeitpunkt der Streichung:</strong> Feld <code>clt</code> der API, also wann die DB die Streichung in ihrem System angelegt hat. Er hängt nicht vom Abfragezeitpunkt ab.</li>
 				<li><strong>Beweissicherung:</strong> Zu jeder Änderung wird die Antwort der API im Wortlaut gespeichert. <span id="raw-links"></span></li>
 			</ul>
 		</section>
 	</div>
 </main>
-<script type="module" src="./app.js?v=6"></script>
+<script type="module" src="./app.js?v=7"></script>
 </body>
 </html>

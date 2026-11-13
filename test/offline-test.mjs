@@ -136,14 +136,18 @@ assert.equal(rep.trains.find(t => t.number === '4042').delay, 15);
 assert.equal(rep.run, 2);
 assert.deepEqual(rep.outcomes, {planned: 1, treuchtlingen: 1, gone: 0});
 assert.deepEqual(rep.shuttle, {run: 1, cancelled: 0});
-assert.deepEqual(rep.days, [{date: '2026-11-14', planned: 1, treuchtlingen: 1, gone: 0}]);
+const cats = (o) => ({ontime: 0, late: 0, reached: 0, noShuttle: 0, missed: 0, gone: 0, open: 0, ...o});
+assert.deepEqual(rep.days, [{date: '2026-11-14', counts: cats({late: 1, noShuttle: 1})}]);
+assert.deepEqual(rep.categories, cats({late: 1, noShuttle: 1}), 'RE 4042 durchgehend mit 15 min, RE 4041 endet ohne Pendelzug');
+assert.equal(rep.trains.find(t => t.number === '4042').categoryNote, '+15 min in Roth');
 assert.equal(rep.cancelledHalts, 1);
 assert.equal(rep.sameDay, 1);
 assert.equal(rep.medianLeadH, 9.65);
 assert.deepEqual(rep.reasons.map(x => [x.code, x.count]), [['d34', 1]]);
 assert.deepEqual([rep.delays.halts.n, rep.delays.halts.late], [2, 1], 'RE 4042 (15 min) und Pendelzug (0 min)');
 assert.deepEqual([rep.delays.treuchtlingen.n, rep.delays.treuchtlingen.late], [1, 1]);
-assert.deepEqual(rep.byTrain.N.map(t => [t.train, t.byDate['2026-11-14']]), [['RE 4041', 'treuchtlingen']]);
+assert.deepEqual(rep.byTrain.N.map(t => [t.train, t.byDate['2026-11-14'].category, t.counts.noShuttle]), [['RE 4041', 'noShuttle', 1]]);
+assert.deepEqual(rep.byTrain.S.map(t => [t.train, t.byDate['2026-11-14'].category]), [['RE 4042', 'late']]);
 assert.deepEqual(rep.coverage.gaps.map(g => g.hours), [8, 7], 'Lücken 08:00–16:00 und 16:00–23:00');
 assert.equal(rep.coverage.lossy.length, 0);
 
@@ -183,6 +187,7 @@ const treuchtlingen15 = (c39544) => '<timetable>'
 	+ '</timetable>';
 // In Roth: RE 4040 gestrichen, an seiner Stelle der Pendelzug 39550
 fchg.Roth = '<timetable><s id="S2-2611152022-2"><tl c="RE" n="39550" t="s"/><ar pt="2611152040" l="RE1" ppth="Treuchtlingen"/><dp pt="2611152040" l="RE1" ppth="Nürnberg Hbf"/></s>'
+	+ '<s id="A-2611150904-10"><tl c="RE" n="4010" t="p"/><ar pt="2611151040" cs="c" clt="2611150300" l="RE1" ppth="München Hbf|Ingolstadt Hbf"/><dp pt="2611151040" cs="c" clt="2611150300" l="RE1" ppth="Nürnberg Hbf"/></s>'
 	+ '<s id="B-2611151904-10"><tl c="RE" n="4040" t="p"/><ar pt="2611152040" cs="c" clt="2611150300" l="RE1" ppth="München Hbf|Ingolstadt Hbf"/><dp pt="2611152040" cs="c" clt="2611150300" l="RE1" ppth="Nürnberg Hbf"/></s></timetable>';
 fchg.Treuchtlingen = treuchtlingen15('2611152231');
 r = await run('2026-11-15T09:00+01:00');
@@ -220,6 +225,11 @@ assert.deepEqual(tr.plannedRange, [-1, 2]);
 assert.deepEqual(tr.slots.map(s => [s.direction, s.through, s.arr, s.dep, s.counts.reached]),
 	[['N', 'RE 4010', '10:22', '10:21', 0], ['N', 'RE 4040', '20:22', '20:22', 1], ['N', 'RE 4044', '22:22', '22:21', 1], ['S', 'RE 4037', '18:38', '18:40', 0]]);
 assert.equal(rep15.trains.find(t => t.number === '39550').replaces, 'RE 4040', 'Pendelzug in Roth seinem Durchläufer zugeordnet');
+assert.deepEqual(rep15.trains.filter(t => t.type === 'durch').map(t => [t.train, t.category, t.categoryNote]).sort(), [
+	['RE 4010', 'missed', 'RE 39540 fuhr 11 min vor Ankunft des Zubringers ab'],
+	['RE 4040', 'reached', 'RE 39550, Umstiegszeit 0 min'],
+]);
+assert.deepEqual(rep15.categories, cats({reached: 1, missed: 1}));
 assert.equal(buildReport(events15, [], {now: '2026-11-15T21:00:00', filter: {from: '2026-11-15'}}).transfers.counts.open, 1, 'RE 4044 noch nicht angekommen');
 assert.deepEqual(buildReport(events15, [], {now: '2026-11-16T00:00:00', filter: {from: '2026-11-15', hours: 'hvz'}}).transfers.pairs.map(p => p.through.train), ['RE 4037'], 'Filter wirkt: nur 18:40 liegt in der Hauptverkehrszeit');
 

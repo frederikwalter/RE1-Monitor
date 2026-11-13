@@ -41,6 +41,26 @@ export const OUTCOMES = {
 	gone: 'Halte gestrichen, nicht in Treuchtlingen gesehen',
 };
 
+// Kategorie eines durchgehenden Zuges an einem Tag, aus Sicht der Reisenden nach bzw. von Roth und Nürnberg.
+// Grundlage für Kalender, Balken pro Tag und Kreise. Die Reihenfolge ist die der Legende und der Stapelung.
+export const CATEGORY_GROUPS = {
+	durch: 'Durchgehend bis bzw. ab Nürnberg',
+	treuchtlingen: 'Nur bis bzw. ab Treuchtlingen',
+	sonst: 'Sonst',
+};
+export const CATEGORIES = {
+	ontime: {group: 'durch', mark: '✓', label: `pünktlich (< ${LATE_FROM} min)`, long: `durchgehend, weniger als ${LATE_FROM} min verspätet`},
+	late: {group: 'durch', mark: '+', label: `verspätet (≥ ${LATE_FROM} min)`, long: `durchgehend, mindestens ${LATE_FROM} min verspätet`},
+	reached: {group: 'treuchtlingen', mark: 'U', label: 'Pendelzug erreichbar', long: 'nur bis/ab Treuchtlingen, Umstieg auf Pendelzug möglich'},
+	noShuttle: {group: 'treuchtlingen', mark: 'T', label: 'kein Pendelzug', long: 'nur bis/ab Treuchtlingen, kein Pendelzug'},
+	missed: {group: 'treuchtlingen', mark: '✕', label: 'Pendelzug nicht erreichbar', long: 'nur bis/ab Treuchtlingen, Pendelzug nicht erreichbar oder ausgefallen'},
+	gone: {group: 'sonst', mark: '–', label: 'nicht in Treuchtlingen gesehen', long: 'Halte gestrichen, auch in Treuchtlingen nicht gesehen'},
+	open: {group: 'sonst', mark: '?', label: 'Umstieg noch offen', long: 'nur bis/ab Treuchtlingen, Umstieg noch nicht entschieden'},
+};
+// immer in der Legende; die übrigen nur, wenn sie vorkommen
+export const MAIN_CATEGORIES = ['ontime', 'late', 'reached', 'noShuttle', 'missed'];
+const zeroCounts = () => Object.fromEntries(Object.keys(CATEGORIES).map(k => [k, 0]));
+
 // Bedeutung der Meldungscodes. Die DB veröffentlicht keine Liste; die Texte stammen aus dem
 // Open-Source-Projekt Travel::Status::DE::IRIS und sind nicht amtlich.
 export const MESSAGE_CODES = {
@@ -190,7 +210,27 @@ const buildTransfers = (halts, filter, now) => {
 		platformChange: decided.filter(p => p.platformArr && p.platformDep && p.platformArr !== p.platformDep).length,
 		// Pendelzug-Fahrt → Durchläufer, den er ersetzt (für die Tabelle "Alle Züge")
 		replaces: new Map(allPairs.map(p => [p.shuttle.trip, p.through.train])),
+		// Fahrt des Durchläufers → Paar (für die Kategorie je Zug)
+		byTrip: new Map(allPairs.map(p => [p.through.trip, p])),
 	};
+};
+
+// Kategorie und Erläuterung (Tooltip) eines durchgehenden Zuges; pair = zugeordneter Pendelzug oder undefined
+const categorize = (t, pair) => {
+	if (t.outcome === 'planned') {
+		const d = t.delay ?? 0;
+		const at = d > 0 ? Object.values(t.halts).find(h => h.delay === d)?.station : '';
+		return {category: d >= LATE_FROM ? 'late' : 'ontime', categoryNote: d > 0 ? `+${d} min in ${at}` : 'ohne gemeldete Verspätung'};
+	}
+	if (t.outcome === 'gone') return {category: 'gone', categoryNote: 'weder in Roth/Nürnberg noch in Treuchtlingen'};
+	if (!pair) return {category: 'noShuttle', categoryNote: 'kein Pendelzug zugeordnet'};
+	const s = pair.shuttle.train, m = pair.actualMin;
+	switch (pair.result) {
+		case 'reached': return {category: 'reached', categoryNote: `${s}, Umstiegszeit ${m} min`};
+		case 'missed': return {category: 'missed', categoryNote: `${s} fuhr ${-m} min vor Ankunft des Zubringers ab`};
+		case 'open': return {category: 'open', categoryNote: `${s}, Umstieg noch nicht entschieden`};
+		default: return {category: 'missed', categoryNote: `${s} ausgefallen`};
+	}
 };
 
 // Auswertung auf drei Ebenen:
@@ -267,7 +307,10 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 	}
 	allTrains.sort((a, b) => b.plannedTime.localeCompare(a.plannedTime));
 	const transfers = buildTransfers(halts, filter, now);
-	for (const t of allTrains) t.replaces = t.type === 'pendel' ? transfers.replaces.get(t.trip) || '' : '';
+	for (const t of allTrains) {
+		t.replaces = t.type === 'pendel' ? transfers.replaces.get(t.trip) || '' : '';
+		Object.assign(t, t.type === 'durch' ? categorize(t, transfers.byTrip.get(t.trip)) : {category: '', categoryNote: ''});
+	}
 
 	const trains = allTrains.filter(t => matches(t, filter));
 	const through = trains.filter(t => t.type === 'durch');
@@ -277,21 +320,24 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 
 	const outcomes = Object.fromEntries(Object.keys(OUTCOMES).map(k => [k, run.filter(t => t.outcome === k).length]));
 
+	const categories = zeroCounts();
+	for (const t of run) categories[t.category]++;
+
 	const dayMap = new Map();
 	for (const t of run) {
-		if (!dayMap.has(t.serviceDate)) dayMap.set(t.serviceDate, {date: t.serviceDate, ...Object.fromEntries(Object.keys(OUTCOMES).map(k => [k, 0]))});
-		dayMap.get(t.serviceDate)[t.outcome]++;
+		if (!dayMap.has(t.serviceDate)) dayMap.set(t.serviceDate, {date: t.serviceDate, counts: zeroCounts()});
+		dayMap.get(t.serviceDate).counts[t.category]++;
 	}
 	const days = [...dayMap.values()].sort((a, b) => b.date.localeCompare(a.date));
 
-	// je Zugnummer und Richtung: Ausgang an jedem Tag (Kalender) und Summe (Kreisdiagramm)
+	// je Zugnummer und Richtung: Kategorie an jedem Tag (Kalender) und Summe (Kreisdiagramm)
 	const numMap = new Map();
 	for (const t of run) {
 		const k = `${t.direction}|${t.number}`;
-		if (!numMap.has(k)) numMap.set(k, {train: t.train, direction: t.direction, times: {}, planned: 0, cancelled: 0, byDate: {}});
+		if (!numMap.has(k)) numMap.set(k, {train: t.train, direction: t.direction, times: {}, counts: zeroCounts(), byDate: {}});
 		const g = numMap.get(k);
-		g[t.cancelled ? 'cancelled' : 'planned']++;
-		g.byDate[t.serviceDate] = t.outcome;
+		g.counts[t.category]++;
+		g.byDate[t.serviceDate] = {category: t.category, note: t.categoryNote};
 		const hm = t.plannedTime.slice(11, 16);
 		g.times[hm] = (g.times[hm] || 0) + 1;
 	}
@@ -299,7 +345,7 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 	for (const g of numMap.values()) {
 		// übliche Abfahrtszeit = die häufigste
 		const time = Object.entries(g.times).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
-		(byTrain[g.direction] ||= []).push({train: g.train, time, planned: g.planned, cancelled: g.cancelled, byDate: g.byDate});
+		(byTrain[g.direction] ||= []).push({train: g.train, time, counts: g.counts, byDate: g.byDate});
 	}
 	for (const list of Object.values(byTrain)) list.sort((a, b) => a.time.localeCompare(b.time));
 
@@ -331,7 +377,7 @@ export const buildReport = (events, runs = [], {now = berlinNow(), filter = {}} 
 		dates: [...new Set(run.map(t => t.serviceDate))].sort(),
 		allDates: [...new Set(allTrains.map(t => t.serviceDate))].sort(),
 		trains,
-		run: run.length, outcomes, upcoming: through.length - run.length,
+		run: run.length, outcomes, categories, upcoming: through.length - run.length,
 		shuttle: {run: shuttleRun.length, cancelled: shuttleRun.filter(t => t.cancelled).length},
 		days, byTrain,
 		cancelledHalts: cancelledHalts.length,

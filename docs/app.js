@@ -1,6 +1,9 @@
 // Darstellung der Auswertung. Die Rechenlogik liegt in report.js.
 // Die Versionsnummer zwingt den Browser, nach einer Änderung an report.js die neue Fassung zu laden.
-import {parseCsv, buildReport, buildSummary, OUTCOMES, LATE_FROM, messageLabel, TRANSFER_RESULTS} from './report.js?v=6';
+import {
+	parseCsv, buildReport, buildSummary, LATE_FROM, messageLabel, TRANSFER_RESULTS,
+	CATEGORIES, CATEGORY_GROUPS, MAIN_CATEGORIES,
+} from './report.js?v=7';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, attrs = {}, ...children) => {
@@ -50,10 +53,11 @@ const fmtLead = (h) => {
 };
 const pct = (a, b) => b ? `${Math.round(a / b * 100)} %` : '–';
 const dirLabel = {N: '→ Nürnberg', S: '→ München'};
-const KEYS = Object.keys(OUTCOMES);
-// Zeichen je Ausgang, damit die Unterscheidung nicht allein an der Farbe hängt
-const MARK = {planned: '✓', treuchtlingen: 'T', gone: '✕'};
-const SHORT = {planned: 'planmäßig', treuchtlingen: 'endet/beginnt in Treuchtlingen', gone: 'nicht in Treuchtlingen gesehen'};
+// Kategorien je Zug und Tag: Farbe (Klasse c-<schlüssel>) und Zeichen, damit nichts allein an der Farbe hängt
+const CAT_KEYS = Object.keys(CATEGORIES);
+const swatch = (k, tag = 'i', cls = 'sw') => el(tag, {class: `${cls} c-${k}`}, CATEGORIES[k].mark);
+const catText = (k) => CATEGORIES[k].long;
+const countsText = (counts) => CAT_KEYS.filter(k => counts[k]).map(k => `${counts[k]} × ${catText(k)}`).join('; ');
 
 const table = (node, head, rows, emptyText) => {
 	node.replaceChildren();
@@ -61,8 +65,16 @@ const table = (node, head, rows, emptyText) => {
 	node.append(el('thead', {}, el('tr', {}, ...head.map(([h, cls]) => el('th', cls ? {class: cls} : {}, h)))));
 	node.append(el('tbody', {}, ...rows.map(r => el('tr', {}, ...r.map((c, i) => el('td', head[i][1] ? {class: head[i][1]} : {}, c ?? ''))))));
 };
-const legend = (keys) => el('div', {class: 'legend'}, ...keys.map(k =>
-	el('span', {}, el('i', {class: `sw o-${k}`}, MARK[k]), OUTCOMES[k])));
+// Legende in Gruppen. Die fünf Hauptkategorien stehen immer drin, die übrigen nur, wenn sie vorkommen.
+const categoryLegend = (counts, {dot = false} = {}) => {
+	const shown = CAT_KEYS.filter(k => MAIN_CATEGORIES.includes(k) || counts[k]);
+	return el('div', {class: 'catlegend'}, ...Object.entries(CATEGORY_GROUPS).map(([g, title]) => {
+		const keys = shown.filter(k => CATEGORIES[k].group === g);
+		const items = keys.map(k => el('span', {}, swatch(k), CATEGORIES[k].label));
+		if (g === 'sonst' && dot) items.push(el('span', {}, el('i', {class: 'sw none'}, '·'), 'nicht beobachtet'));
+		return items.length ? el('div', {class: 'group'}, el('span', {class: 'gtitle'}, title), ...items) : null;
+	}));
+};
 const barList = (node, items, total, unit) => {
 	const max = Math.max(1, ...items.map(b => b.count));
 	node.replaceChildren(...items.map(b =>
@@ -117,17 +129,19 @@ const renderTiles = (rep) => {
 	);
 };
 
+const throughCount = (counts) => counts.ontime + counts.late;
+const total = (counts) => CAT_KEYS.reduce((s, k) => s + counts[k], 0);
+
 const renderDays = (rep) => {
-	const used = KEYS.filter(k => rep.outcomes[k]);
-	$('days-legend').replaceChildren(legend(used.length ? used : ['planned']));
-	const dayMax = Math.max(1, ...rep.days.map(d => KEYS.reduce((s, k) => s + d[k], 0)));
+	$('days-legend').replaceChildren(categoryLegend(rep.categories));
+	const dayMax = Math.max(1, ...rep.days.map(d => total(d.counts)));
 	$('days').replaceChildren(...(rep.days.length ? rep.days.map(d => {
-		const total = KEYS.reduce((s, k) => s + d[k], 0);
-		return el('div', {class: 'row', title: `${fmtDay(d.date)}: ${KEYS.filter(k => d[k]).map(k => `${d[k]} ${SHORT[k]}`).join(', ')}`},
+		const n = total(d.counts);
+		return el('div', {class: 'row', title: `${wd(d.date)} ${fmtDay(d.date)}: ${countsText(d.counts)}`},
 			el('div', {class: 'name'}, `${wd(d.date)} ${fmtDay(d.date)}`),
-			el('div', {class: 'stack', style: `width:${total / dayMax * 100}%`},
-				...KEYS.filter(k => d[k]).map(k => el('div', {class: `o-${k}`, style: `flex:${d[k]}`}))),
-			el('div', {class: 'num'}, `${d.planned} von ${total} planmäßig`));
+			el('div', {class: 'stack', style: `width:${n / dayMax * 100}%`},
+				...CAT_KEYS.filter(k => d.counts[k]).map(k => el('div', {class: `c-${k}`, style: `flex:${d.counts[k]}`}))),
+			el('div', {class: 'num'}, `${throughCount(d.counts)} von ${n} durchgehend`));
 	}) : [el('div', {class: 'empty', style: 'grid-column:1/-1'}, 'Noch ist kein beobachteter Zug gefahren.')]));
 };
 
@@ -135,8 +149,7 @@ const renderDays = (rep) => {
 const renderCalendar = (rep) => {
 	const node = $('calendar');
 	node.replaceChildren();
-	const used = KEYS.filter(k => rep.outcomes[k]);
-	$('calendar-legend').replaceChildren(legend(used.length ? used : ['planned']));
+	$('calendar-legend').replaceChildren(categoryLegend(rep.categories, {dot: true}));
 	if (!rep.dates.length) { node.append(el('caption', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')); return; }
 	node.append(el('thead', {}, el('tr', {}, el('th', {}, 'Abfahrt'), el('th', {}, 'Zug'),
 		...rep.dates.map(d => el('th', {class: 'c', title: fmtDay(d)}, el('span', {}, wd(d)), el('br'), `${d.slice(8, 10)}.${d.slice(5, 7)}.`)))));
@@ -148,42 +161,47 @@ const renderCalendar = (rep) => {
 		for (const t of list) {
 			body.append(el('tr', {}, el('td', {class: 'num'}, t.time), el('td', {}, t.train),
 				...rep.dates.map(d => {
-					const o = t.byDate[d];
-					return el('td', {class: 'c'}, o
-						? el('span', {class: `cell o-${o}`, title: `${t.train}, ${fmtDay(d)}: ${SHORT[o]}`}, MARK[o])
-						: el('span', {class: 'cell none', title: `${t.train}, ${fmtDay(d)}: nicht beobachtet`}, '·'));
+					const c = t.byDate[d];
+					return el('td', {class: 'c'}, c
+						? el('span', {class: `cell c-${c.category}`, title: `${t.train}, ${wd(d)} ${fmtDay(d)}: ${catText(c.category)} – ${c.note}`}, CATEGORIES[c.category].mark)
+						: el('span', {class: 'cell none', title: `${t.train}, ${wd(d)} ${fmtDay(d)}: nicht beobachtet`}, '·'));
 				})));
 		}
 	}
 	node.append(body);
 };
 
-const pie = (a, b) => {
+// Kreis aus Segmenten in Kategorie-Reihenfolge, beginnend oben im Uhrzeigersinn
+const pie = (counts) => {
 	const R = 20, C = 22, svg = svgEl('svg', {width: 44, height: 44, viewBox: '0 0 44 44', 'aria-hidden': 'true'});
-	if (!a || !b) { svg.append(svgEl('circle', {cx: C, cy: C, r: R, class: a ? 'a' : 'b'})); return svg; }
+	const keys = CAT_KEYS.filter(k => counts[k]), n = total(counts);
+	if (keys.length === 1) { svg.append(svgEl('circle', {cx: C, cy: C, r: R, class: `c-${keys[0]}`})); return svg; }
 	const pt = (f) => `${C + R * Math.sin(2 * Math.PI * f)},${C - R * Math.cos(2 * Math.PI * f)}`;
-	const slice = (from, to, cls) => svgEl('path', {class: cls,
-		d: `M${C},${C} L${pt(from)} A${R},${R} 0 ${to - from > 0.5 ? 1 : 0} 1 ${pt(to)} Z`});
-	const f = a / (a + b);
-	svg.append(slice(0, f, 'a'), slice(f, 1, 'b'));
+	let from = 0;
+	for (const k of keys) {
+		const to = from + counts[k] / n;
+		svg.append(svgEl('path', {class: `c-${k}`, d: `M${C},${C} L${pt(from)} A${R},${R} 0 ${to - from > 0.5 ? 1 : 0} 1 ${pt(to)} Z`}));
+		from = to;
+	}
 	return svg;
 };
 const renderPies = (rep) => {
+	$('pies-legend').replaceChildren(categoryLegend(rep.categories));
 	const pieRow = (dir) => {
 		const list = rep.byTrain[dir] || [];
 		return [el('div', {class: 'dir'}, dirLabel[dir]),
 			el('div', {class: 'line'}, ...(list.length ? list.map(t => {
-				const days = t.planned + t.cancelled;
-				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr: an ${t.planned} von ${days} ${days === 1 ? 'Tag' : 'Tagen'} planmäßig, an ${t.cancelled} mit gestrichenen Halten`},
-					pie(t.planned, t.cancelled), el('div', {class: 't'}, t.time), el('div', {}, t.train), el('div', {class: 'c'}, `${t.planned} / ${t.cancelled}`));
+				const days = total(t.counts);
+				return el('div', {class: 'pie', title: `${t.train}, Abfahrt ${t.time} Uhr, ${days} ${days === 1 ? 'Tag' : 'Tage'}: ${countsText(t.counts)}`},
+					pie(t.counts), el('div', {class: 't'}, t.time), el('div', {}, t.train), el('div', {class: 'c'}, `${throughCount(t.counts)} von ${days}`));
 			}) : [el('span', {class: 'empty'}, 'Noch ist kein beobachteter Zug gefahren.')]))];
 	};
 	$('pies').replaceChildren(...pieRow('N'), ...pieRow('S'));
 };
 
-// Umstieg in Treuchtlingen; Farben wie bei den Ausgängen, dazu je ein Zeichen
-const T_CLASS = {reached: 'o-planned', missed: 'o-treuchtlingen', feederCancelled: 'o-gone', connectionCancelled: 'o-gone', open: 'o-neutral'};
-const T_MARK = {reached: '✓', missed: '✕', feederCancelled: 'A', connectionCancelled: 'A', open: '?'};
+// Umstieg in Treuchtlingen; Farben und Zeichen wie bei den Kategorien
+const T_CLASS = {reached: 'c-reached', missed: 'c-missed', feederCancelled: 'c-gone', connectionCancelled: 'c-missed', open: 'c-open'};
+const T_MARK = {reached: 'U', missed: '✕', feederCancelled: '–', connectionCancelled: '✕', open: '?'};
 const signed = (m) => m === null ? '–' : `${m > 0 ? '+' : m < 0 ? '−' : '±'}${Math.abs(m)} min`;
 const hm = (s) => s ? s.slice(11, 16) : '–';
 const transferCsv = (pairs) => {
@@ -294,7 +312,7 @@ const renderTrains = (rep) => {
 		sel.replaceChildren(el('option', {value: ''}, all), ...opts.map(([v, t]) => el('option', {value: v}, t)));
 		if (opts.some(([v]) => v === value)) sel.value = value;
 	};
-	fill($('f-status'), 'alle', [...KEYS.map(k => [k, OUTCOMES[k]]), ['pendel', 'Pendelzüge']], keep.status);
+	fill($('f-status'), 'alle', [...CAT_KEYS.map(k => [k, catText(k)]), ['pendel', 'Pendelzüge']], keep.status);
 	fill($('f-day'), 'alle', days.map(d => [d, `${wd(d)} ${fmtDay(d)}`]), keep.day);
 	const haltCell = (h) => !h ? el('span', {class: 'muted'}, '–')
 		: h.cancelled ? `✕ ${h.status}`
@@ -305,15 +323,17 @@ const renderTrains = (rep) => {
 	const renderRows = () => {
 		const status = $('f-status').value, day = $('f-day').value;
 		const rows = rep.trains.filter(t =>
-			(!status || (status === 'pendel' ? t.type === 'pendel' : t.type === 'durch' && t.outcome === status))
+			(!status || (status === 'pendel' ? t.type === 'pendel' : t.category === status))
 			&& (!day || t.serviceDate === day));
 		currentRows = rows;
 		table($('trains'),
-			[['Zug'], ['Richtung'], ['Abfahrt'], ['Ausgang'], ...rep.stations.map(s => [s]), ['Treuchtlingen'],
+			[['Zug'], ['Richtung'], ['Abfahrt'], ['Kategorie'], ...rep.stations.map(s => [s]), ['Treuchtlingen'],
 				['Streichung angelegt'], ['Vorlauf', 'num'], ['Meldung'], ['']],
 			rows.map(t => [
 				t.train, dirLabel[t.direction] || '', `${wd(t.serviceDate)} ${fmtTime(t.plannedTime)}`,
-				el('span', {}, el('i', {class: `sw o-${t.outcome}`}, MARK[t.outcome]), t.type === 'pendel' ? `Pendelzug${t.replaces ? ` für ${t.replaces}` : ''}${t.cancelled ? ', Halte gestrichen' : ''}` : SHORT[t.outcome]),
+				t.type === 'pendel'
+					? el('span', {}, el('i', {class: 'sw none'}, 'P'), `Pendelzug${t.replaces ? ` für ${t.replaces}` : ''}${t.cancelled ? ', Halte gestrichen' : ''}`)
+					: el('span', {title: t.categoryNote}, swatch(t.category), catText(t.category)),
 				...rep.stations.map(s => haltCell(t.halts[s])), ctxCell(t),
 				t.cancelled ? fmtTime(t.createdAt) + (t.exact ? '' : ' *') : '', t.cancelled ? fmtLead(t.leadH) : '',
 				t.messages.map(messageLabel).join(', '),
@@ -328,9 +348,9 @@ const renderTrains = (rep) => {
 
 	$('download').onclick = () => {
 		const cell = (v) => /[",\n;]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
-		const head = ['zug', 'richtung', 'betriebstag', 'abfahrt', 'typ', 'pendelzug_fuer', 'ausgang', ...rep.stations.map(s => `status_${s}`),
+		const head = ['zug', 'richtung', 'betriebstag', 'abfahrt', 'typ', 'pendelzug_fuer', 'kategorie', 'kategorie_detail', ...rep.stations.map(s => `status_${s}`),
 			'treuchtlingen', 'streichung_angelegt', 'vorlauf_h', 'verspaetung_min', 'verspaetung_treuchtlingen_min', 'meldungen'];
-		const lines = currentRows.map(t => [t.train, t.direction, t.serviceDate, t.plannedTime, t.type, t.replaces, OUTCOMES[t.outcome],
+		const lines = currentRows.map(t => [t.train, t.direction, t.serviceDate, t.plannedTime, t.type, t.replaces, t.category ? catText(t.category) : '', t.categoryNote,
 			...rep.stations.map(s => t.halts[s]?.status ?? ''), t.context ? (t.context.terminus || t.context.status) : '',
 			t.createdAt, t.leadH ?? '', t.delay ?? '', t.contextDelay ?? '', t.messages.join(' ')].map(cell).join(','));
 		const a = el('a', {href: URL.createObjectURL(new Blob([[head.join(','), ...lines].join('\n') + '\n'], {type: 'text/csv'})), download: 're1-zuege.csv'});
