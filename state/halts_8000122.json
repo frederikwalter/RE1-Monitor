@@ -321,12 +321,12 @@
   "3053750877042388525-2611132221-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 7,
-    "messages": "d21;d34",
+    "delay": 19,
+    "messages": "d21;d34;f0",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-13T21:21:00.000Z",
-    "loggedDelay": 7
+    "loggedDelay": 19
   }
 }
