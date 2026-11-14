@@ -442,29 +442,29 @@
   "-2734995039975038553-2611141704-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 4,
+    "delay": 11,
     "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T17:39:00.000Z",
-    "loggedDelay": 4
+    "loggedDelay": 11
   },
   "-2293696810884829255-2611141908-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 6,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T18:22:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 6
   },
   "6296899451022645850-2611141904-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 4,
     "messages": "",
     "terminus": "",
     "before": "",
@@ -602,6 +602,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T10:22:00.000Z",
+    "loggedDelay": 0
+  },
+  "1259468410947182792-2611151103-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-15T11:39:00.000Z",
     "loggedDelay": 0
   }
 }
