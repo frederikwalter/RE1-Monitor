@@ -475,8 +475,8 @@
   "7262523588411774200-2611141304-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 15,
-    "messages": "",
+    "delay": 11,
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
@@ -486,7 +486,7 @@
   "2876387611325759240-2611141408-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 2,
     "messages": "f0;q82",
     "terminus": "",
     "before": "",
@@ -497,35 +497,35 @@
   "5439808080795220879-2611141407-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 6,
+    "messages": "d45",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T14:49:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 6
   },
   "-3268395840705496538-2611141507-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 7,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T14:07:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 7
   },
   "-1397927430332464786-2611141504-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 16,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T15:56:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 16
   },
   "-8253571500114866383-2611141608-1": {
     "status": "planmäßig",
@@ -734,6 +734,28 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T06:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "3081247280505181253-2611150703-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-15T07:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "2180632807117550704-2611150808-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-15T07:08:00.000Z",
     "loggedDelay": 0
   }
 }
