@@ -321,19 +321,19 @@
   "5909422659134048484-2611140707-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 10,
+    "delay": 20,
     "messages": "d47",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T06:22:00.000Z",
-    "loggedDelay": 10
+    "loggedDelay": 20
   },
   "-1057426437887266667-2611140704-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 14,
-    "messages": "",
+    "delay": 17,
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
