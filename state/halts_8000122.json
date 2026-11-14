@@ -352,10 +352,10 @@
     "loggedDelay": 0
   },
   "3053750877042388525-2611142221-1": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611142150",
     "delay": 0,
-    "messages": "d34",
+    "messages": "d34;f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
