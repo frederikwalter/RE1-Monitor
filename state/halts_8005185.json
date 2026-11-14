@@ -464,13 +464,13 @@
   "6296899451022645850-2611141904-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 3,
-    "messages": "",
+    "delay": 5,
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-14T19:40:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 5
   },
   "-2819116478804696918-2611142107-2": {
     "status": "planmäßig",
