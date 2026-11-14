@@ -652,7 +652,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "f0",
+    "messages": "f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -662,13 +662,13 @@
   "2937539297421099214-2611142305-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 10,
-    "messages": "",
+    "delay": 4,
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T00:05:00.000Z",
-    "loggedDelay": 10
+    "loggedDelay": 4
   },
   "9146765748476800288-2611141021-3": {
     "status": "planmäßig",
@@ -927,7 +927,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -938,7 +938,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -954,6 +954,28 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T16:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2734995039975038553-2611151704-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-15T17:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "-6208140427880646318-2611151808-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-15T17:08:00.000Z",
     "loggedDelay": 0
   }
 }
