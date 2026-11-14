@@ -460,5 +460,16 @@
     "after": "",
     "plannedTime": "2026-11-14T18:22:00.000Z",
     "loggedDelay": 0
+  },
+  "6296899451022645850-2611141904-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-14T19:40:00.000Z",
+    "loggedDelay": 0
   }
 }
