@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111219": true,
     "26111220": true,
     "26111221": true,
     "26111222": true,
@@ -86,7 +85,8 @@
     "26111609": true,
     "26111610": true,
     "26111611": true,
-    "26111612": true
+    "26111612": true,
+    "26111613": true
   },
   "stops": {
     "9213468511389413742-2611130907-100": {
@@ -145,27 +145,6 @@
       },
       "dp": {
         "pt": "2611122140",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-        "ps": "a"
-      },
-      "added": true
-    },
-    "-7173313963166475560-2611121908-100": {
-      "tl": {
-        "c": "RE",
-        "n": "4037",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611121940",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf|Roth",
-        "ps": "a"
-      },
-      "dp": {
-        "pt": "2611121940",
         "pp": "3",
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
@@ -766,6 +745,48 @@
       },
       "dp": {
         "pt": "2611160940",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "-7456143198501088009-2611161104-100": {
+      "tl": {
+        "c": "RE",
+        "n": "4014",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611161221",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611161221",
+        "l": "RE1",
+        "ppth": "Roth|Nürnberg Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "2955794499665047911-2611161107-100": {
+      "tl": {
+        "c": "RE",
+        "n": "4019",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611161140",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf|Roth",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611161140",
         "pp": "2",
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
