@@ -552,19 +552,19 @@
   "5909422659134048484-2611150707-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 6,
+    "messages": "d43;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T06:22:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 6
   },
   "3081247280505181253-2611150703-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 16,
-    "messages": "",
+    "delay": 19,
+    "messages": "d43;f2000",
     "terminus": "",
     "before": "",
     "after": "",
