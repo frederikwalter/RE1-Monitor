@@ -79,7 +79,8 @@
     "26111600": true,
     "26111601": true,
     "26111604": true,
-    "26111605": true
+    "26111605": true,
+    "26111606": true
   },
   "stops": {
     "4261737417841218390-2611121704-7": {
@@ -1404,6 +1405,19 @@
         "ppth": "Treuchtlingen|Roth"
       },
       "added": true
+    },
+    "-3901580007931980802-2611160500-8": {
+      "tl": {
+        "c": "RE",
+        "n": "4000",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611160654",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
+      }
     }
   }
 }
