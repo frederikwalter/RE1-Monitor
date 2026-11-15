@@ -827,7 +827,7 @@
   "1259468410947182792-2611151103-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 6,
+    "delay": 5,
     "messages": "d43",
     "terminus": "",
     "before": "",
@@ -838,7 +838,7 @@
   "1073334805888498002-2611151208-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 20,
+    "delay": 17,
     "messages": "d36;d48;f0;f2000",
     "terminus": "",
     "before": "",
@@ -871,13 +871,13 @@
   "7262523588411774200-2611151304-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 11,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T13:55:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 11
   },
   "2876387611325759240-2611151408-1": {
     "status": "planmäßig",
