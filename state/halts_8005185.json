@@ -629,8 +629,8 @@
   "7262523588411774200-2611151304-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 26,
-    "messages": "d43;f2000",
+    "delay": 30,
+    "messages": "d43;d64;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -640,18 +640,18 @@
   "-3268395840705496538-2611151507-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 21,
-    "messages": "",
+    "delay": 39,
+    "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T14:22:00.000Z",
-    "loggedDelay": 21
+    "loggedDelay": 39
   },
   "-1397927430332464786-2611151504-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 15,
+    "delay": 13,
     "messages": "",
     "terminus": "",
     "before": "",
@@ -792,23 +792,23 @@
     "loggedDelay": 0
   },
   "2509481361772693088-2611160707-2": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611151130",
     "delay": 0,
-    "messages": "",
+    "messages": "d34",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-16T06:22:00.000Z",
     "loggedDelay": 0
   },
   "-1057426437887266667-2611160704-6": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611151130",
     "delay": 0,
-    "messages": "",
+    "messages": "d34",
     "terminus": "",
-    "before": "",
+    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
     "after": "",
     "plannedTime": "2026-11-16T07:40:00.000Z",
     "loggedDelay": 0
@@ -822,6 +822,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-16T09:39:00.000Z",
+    "loggedDelay": 0
+  },
+  "9213468511389413742-2611160907-2": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-16T08:22:00.000Z",
     "loggedDelay": 0
   }
 }
