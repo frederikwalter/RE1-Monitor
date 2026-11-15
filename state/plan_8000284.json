@@ -83,7 +83,8 @@
     "26111606": true,
     "26111607": true,
     "26111608": true,
-    "26111609": true
+    "26111609": true,
+    "26111610": true
   },
   "stops": {
     "4261737417841218390-2611121704-7": {
@@ -1473,6 +1474,19 @@
         "pp": "12",
         "l": "RE1",
         "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
+      }
+    },
+    "9056467743579878345-2611160904-7": {
+      "tl": {
+        "c": "RE",
+        "n": "4010",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611161055",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
       }
     }
   }
