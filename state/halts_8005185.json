@@ -574,18 +574,18 @@
   "5313323300037143342-2611150907-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 22,
+    "delay": 28,
     "messages": "d48;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-15T08:22:00.000Z",
-    "loggedDelay": 22
+    "loggedDelay": 28
   },
   "7941894357234867037-2611150903-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 11,
+    "delay": 13,
     "messages": "q82",
     "terminus": "",
     "before": "",
