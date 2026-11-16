@@ -1,15 +1,4 @@
 {
-  "3804722052049511935-2611132107-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-13T20:40:00.000Z",
-    "loggedDelay": 0
-  },
   "3053750877042388525-2611132221-1": {
     "status": "planmäßig",
     "clt": "",
@@ -231,8 +220,8 @@
     "loggedDelay": 28
   },
   "-5498111274338209451-2611162022-1": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611162103",
     "delay": 50,
     "messages": "d34;d7;f2000",
     "terminus": "",
@@ -299,13 +288,13 @@
   "5321437189916721296-2611162104-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 20,
+    "delay": 21,
     "messages": "d34",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-16T21:21:00.000Z",
-    "loggedDelay": 20
+    "loggedDelay": 21
   },
   "4930918570354887901-2611162107-100": {
     "status": "zusätzlich",
@@ -415,6 +404,28 @@
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-17T11:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "8571379389842677519-2611171304-100": {
+    "status": "zusätzlich",
+    "clt": "",
+    "delay": 0,
+    "messages": "d34",
+    "terminus": "endet hier",
+    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
+    "after": "",
+    "plannedTime": "2026-11-17T13:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2307919218186410793-2611171307-100": {
+    "status": "zusätzlich",
+    "clt": "",
+    "delay": 0,
+    "messages": "d34",
+    "terminus": "beginnt hier",
+    "before": "",
+    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+    "plannedTime": "2026-11-17T12:40:00.000Z",
     "loggedDelay": 0
   }
 }
