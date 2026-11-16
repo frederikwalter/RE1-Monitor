@@ -32,17 +32,6 @@
     "plannedTime": "2026-11-13T06:40:00.000Z",
     "loggedDelay": 0
   },
-  "-3901580007931980802-2611130500-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 34,
-    "messages": "d34",
-    "terminus": "endet hier",
-    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
-    "after": "",
-    "plannedTime": "2026-11-13T05:21:00.000Z",
-    "loggedDelay": 34
-  },
   "-1057426437887266667-2611130704-100": {
     "status": "zusätzlich",
     "clt": "",
@@ -288,13 +277,13 @@
   "-3901580007931980802-2611160500-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 19,
+    "delay": 16,
     "messages": "d34;f0",
     "terminus": "endet hier",
     "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-16T05:21:00.000Z",
-    "loggedDelay": 19
+    "loggedDelay": 16
   },
   "9146765748476800288-2611161021-1": {
     "status": "planmäßig",
@@ -321,13 +310,13 @@
   "-1057426437887266667-2611160704-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 0,
-    "messages": "d34",
+    "delay": 22,
+    "messages": "d34;f2000",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-16T07:28:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 22
   },
   "9056467743579878345-2611160904-100": {
     "status": "zusätzlich",
