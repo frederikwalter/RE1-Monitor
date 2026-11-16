@@ -86,7 +86,8 @@
     "26111617": true,
     "26111618": true,
     "26111619": true,
-    "26111620": true
+    "26111620": true,
+    "26111621": true
   },
   "stops": {
     "6106442635410950120-2611130507-1": {
@@ -1555,6 +1556,19 @@
         "ppth": "Treuchtlingen|Roth"
       },
       "added": true
+    },
+    "4930918570354887901-2611162107-1": {
+      "tl": {
+        "c": "RE",
+        "n": "4041",
+        "t": "p"
+      },
+      "dp": {
+        "pt": "2611162107",
+        "pp": "4 C-F",
+        "l": "RE1",
+        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
+      }
     }
   }
 }
