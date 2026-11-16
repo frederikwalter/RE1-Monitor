@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111315": true,
     "26111316": true,
     "26111317": true,
     "26111318": true,
@@ -86,7 +85,8 @@
     "26111705": true,
     "26111706": true,
     "26111707": true,
-    "26111708": true
+    "26111708": true,
+    "26111709": true
   },
   "stops": {
     "-623966216702727787-2611131707-100": {
@@ -162,27 +162,6 @@
         "pt": "2611131621",
         "l": "RE1",
         "ppth": "Roth|Nürnberg Hbf",
-        "ps": "a"
-      },
-      "added": true
-    },
-    "-8483210532685931151-2611131507-100": {
-      "tl": {
-        "c": "RE",
-        "n": "4027",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611131540",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf|Roth",
-        "ps": "a"
-      },
-      "dp": {
-        "pt": "2611131540",
-        "pp": "4",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
         "ps": "a"
       },
       "added": true
@@ -812,6 +791,48 @@
         "pp": "3",
         "l": "RE1",
         "ppth": "Roth|Nürnberg Hbf"
+      },
+      "added": true
+    },
+    "-1057426437887266667-2611170704-100": {
+      "tl": {
+        "c": "RB",
+        "n": "4004",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611170822",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611170822",
+        "l": "RE1",
+        "ppth": "Roth|Nürnberg Hbf",
+        "ps": "a"
+      },
+      "added": true
+    },
+    "2509481361772693088-2611170707-100": {
+      "tl": {
+        "c": "RB",
+        "n": "4007",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611170740",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf|Roth",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611170740",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+        "ps": "a"
       },
       "added": true
     }
