@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111314": true,
     "26111315": true,
     "26111316": true,
     "26111317": true,
@@ -85,7 +84,8 @@
     "26111704": true,
     "26111705": true,
     "26111706": true,
-    "26111707": true
+    "26111707": true,
+    "26111708": true
   },
   "stops": {
     "8571379389842677519-2611131304-7": {
@@ -1514,6 +1514,33 @@
         "l": "RE1",
         "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
       }
+    },
+    "-1057426437887266667-2611170704-7": {
+      "tl": {
+        "c": "RB",
+        "n": "4004",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611170855",
+        "pp": "12",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
+      }
+    },
+    "9146765748476800288-2611171021-3": {
+      "tl": {
+        "c": "RE",
+        "n": "39540",
+        "t": "s"
+      },
+      "ar": {
+        "pt": "2611171055",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "Treuchtlingen|Roth"
+      },
+      "added": true
     }
   }
 }
