@@ -21,17 +21,6 @@
     "plannedTime": "2026-11-14T21:21:00.000Z",
     "loggedDelay": 0
   },
-  "-5498111274338209451-2611142022-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-14T19:22:00.000Z",
-    "loggedDelay": 0
-  },
   "6106442635410950120-2611160507-3": {
     "status": "teilweise gestrichen",
     "clt": "2611150930",
@@ -431,13 +420,13 @@
   "-5498111274338209451-2611172022-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "d34",
+    "delay": 30,
+    "messages": "d21;d34;f0",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-17T19:22:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 30
   },
   "4261737417841218390-2611171704-100": {
     "status": "zusätzlich",
@@ -464,13 +453,13 @@
   "3053750877042388525-2611172221-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 20,
     "messages": "d34",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-17T21:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 20
   },
   "-7173313963166475560-2611171908-100": {
     "status": "zusätzlich",
@@ -486,13 +475,13 @@
   "7347363591020888163-2611171904-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 32,
+    "delay": 31,
     "messages": "d34",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-17T19:22:00.000Z",
-    "loggedDelay": 32
+    "loggedDelay": 31
   },
   "4930918570354887901-2611172107-100": {
     "status": "zusätzlich",
@@ -508,13 +497,13 @@
   "5321437189916721296-2611172104-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 0,
+    "delay": 19,
     "messages": "d34",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-17T21:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 19
   },
   "-1023042256064098440-2611172307-100": {
     "status": "zusätzlich",
@@ -541,13 +530,13 @@
   "9146765748476800288-2611181021-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "d34",
+    "delay": 20,
+    "messages": "d21;d34",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-18T09:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 20
   },
   "2509481361772693088-2611180707-100": {
     "status": "zusätzlich",

@@ -10,17 +10,6 @@
     "plannedTime": "2026-11-14T19:56:00.000Z",
     "loggedDelay": 20
   },
-  "-277955073194021155-2611142008-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 1,
-    "messages": "f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-14T19:08:00.000Z",
-    "loggedDelay": 0
-  },
   "3442276589121377598-2611141958-3": {
     "status": "planmäßig",
     "clt": "",
@@ -915,13 +904,13 @@
   "-5498111274338209451-2611172022-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": -1,
-    "messages": "d34",
+    "delay": 29,
+    "messages": "d21;d34",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-17T19:56:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 29
   },
   "-7173313963166475560-2611171908-1": {
     "status": "gestrichen",
@@ -948,13 +937,13 @@
   "3053750877042388525-2611172221-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 19,
     "messages": "d34",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-17T21:55:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 19
   },
   "4930918570354887901-2611172107-1": {
     "status": "gestrichen",
@@ -1047,13 +1036,13 @@
   "9146765748476800288-2611181021-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "d34",
+    "delay": 19,
+    "messages": "d21;d34",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-18T09:55:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 19
   },
   "9213468511389413742-2611180907-1": {
     "status": "gestrichen",
@@ -1108,6 +1097,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-18T12:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "8571379389842677519-2611181304-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-18T13:55:00.000Z",
     "loggedDelay": 0
   }
 }
