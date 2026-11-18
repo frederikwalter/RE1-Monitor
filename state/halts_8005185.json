@@ -32,17 +32,6 @@
     "plannedTime": "2026-11-16T19:40:00.000Z",
     "loggedDelay": 0
   },
-  "-2293696810884829255-2611151908-2": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 25,
-    "messages": "d48;q82",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-15T18:22:00.000Z",
-    "loggedDelay": 25
-  },
   "6296899451022645850-2611151904-6": {
     "status": "planmäßig",
     "clt": "",
@@ -806,7 +795,7 @@
     "status": "gestrichen",
     "clt": "2611181155",
     "delay": 0,
-    "messages": "d34",
+    "messages": "d34;f2000",
     "terminus": "",
     "before": "",
     "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
@@ -817,7 +806,7 @@
     "status": "gestrichen",
     "clt": "2611181155",
     "delay": 0,
-    "messages": "d34;f2000",
+    "messages": "d34;d40;f2000",
     "terminus": "",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
     "after": "",
@@ -839,7 +828,7 @@
     "status": "gestrichen",
     "clt": "2611181155",
     "delay": 0,
-    "messages": "d34",
+    "messages": "d34;d40",
     "terminus": "",
     "before": "",
     "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
@@ -946,17 +935,28 @@
     "loggedDelay": 0
   },
   "2955794499665047911-2611191107-2": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611181530",
     "delay": 0,
-    "messages": "",
+    "messages": "d34",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-19T10:22:00.000Z",
     "loggedDelay": 0
   },
   "-7456143198501088009-2611191104-6": {
+    "status": "gestrichen",
+    "clt": "2611181530",
+    "delay": 0,
+    "messages": "d34",
+    "terminus": "",
+    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
+    "after": "",
+    "plannedTime": "2026-11-19T11:39:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2307919218186410793-2611191307-2": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
@@ -964,7 +964,7 @@
     "terminus": "",
     "before": "",
     "after": "",
-    "plannedTime": "2026-11-19T11:39:00.000Z",
+    "plannedTime": "2026-11-19T12:22:00.000Z",
     "loggedDelay": 0
   }
 }
