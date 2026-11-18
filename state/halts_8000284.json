@@ -937,17 +937,17 @@
   "6106442635410950120-2611180507-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 10,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-18T04:07:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 10
   },
   "-3901580007931980802-2611180500-8": {
     "status": "gestrichen",
-    "clt": "2611171057",
+    "clt": "2611171127",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -958,7 +958,7 @@
   },
   "2509481361772693088-2611180707-1": {
     "status": "gestrichen",
-    "clt": "2611171130",
+    "clt": "2611171127",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -969,7 +969,7 @@
   },
   "-1057426437887266667-2611180704-7": {
     "status": "gestrichen",
-    "clt": "2611171130",
+    "clt": "2611171127",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -1144,17 +1144,28 @@
     "loggedDelay": 19
   },
   "4930918570354887901-2611182107-1": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611180130",
     "delay": 0,
-    "messages": "",
+    "messages": "d34",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-18T20:07:00.000Z",
     "loggedDelay": 0
   },
   "5321437189916721296-2611182104-7": {
+    "status": "gestrichen",
+    "clt": "2611180130",
+    "delay": 0,
+    "messages": "d34",
+    "terminus": "",
+    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
+    "after": "",
+    "plannedTime": "2026-11-18T21:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "-1023042256064098440-2611182307-1": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
@@ -1162,7 +1173,7 @@
     "terminus": "",
     "before": "",
     "after": "",
-    "plannedTime": "2026-11-18T21:55:00.000Z",
+    "plannedTime": "2026-11-18T22:07:00.000Z",
     "loggedDelay": 0
   }
 }
