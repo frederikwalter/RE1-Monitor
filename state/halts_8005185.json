@@ -32,17 +32,6 @@
     "plannedTime": "2026-11-16T19:40:00.000Z",
     "loggedDelay": 0
   },
-  "-3268395840705496538-2611151507-2": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 52,
-    "messages": "d48;f2000",
-    "terminus": "",
-    "before": "Nürnberg Hbf",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)",
-    "plannedTime": "2026-11-15T14:22:00.000Z",
-    "loggedDelay": 52
-  },
   "-1397927430332464786-2611151504-6": {
     "status": "planmäßig",
     "clt": "",
