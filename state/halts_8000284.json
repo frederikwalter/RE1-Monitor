@@ -938,7 +938,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 10,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -947,7 +947,7 @@
   },
   "-3901580007931980802-2611180500-8": {
     "status": "gestrichen",
-    "clt": "2611171127",
+    "clt": "2611171057",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -958,7 +958,7 @@
   },
   "2509481361772693088-2611180707-1": {
     "status": "gestrichen",
-    "clt": "2611171127",
+    "clt": "2611171130",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -969,7 +969,7 @@
   },
   "-1057426437887266667-2611180704-7": {
     "status": "gestrichen",
-    "clt": "2611171127",
+    "clt": "2611171130",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
