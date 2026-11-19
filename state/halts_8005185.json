@@ -43,17 +43,6 @@
     "plannedTime": "2026-11-17T09:39:00.000Z",
     "loggedDelay": 0
   },
-  "-8483210532685931151-2611161507-2": {
-    "status": "gestrichen",
-    "clt": "2611151930",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-16T14:22:00.000Z",
-    "loggedDelay": 0
-  },
   "8999201779717204412-2611161504-6": {
     "status": "gestrichen",
     "clt": "2611151930",
@@ -943,6 +932,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T07:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "9213468511389413742-2611200907-2": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T08:22:00.000Z",
     "loggedDelay": 0
   }
 }

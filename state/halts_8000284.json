@@ -43,28 +43,6 @@
     "plannedTime": "2026-11-17T09:55:00.000Z",
     "loggedDelay": -1
   },
-  "8571379389842677519-2611161304-7": {
-    "status": "gestrichen",
-    "clt": "2611151730",
-    "delay": 0,
-    "messages": "d34;d48",
-    "terminus": "",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
-    "after": "",
-    "plannedTime": "2026-11-16T13:55:00.000Z",
-    "loggedDelay": 0
-  },
-  "-8483210532685931151-2611161507-1": {
-    "status": "gestrichen",
-    "clt": "2611151930",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-16T14:07:00.000Z",
-    "loggedDelay": 0
-  },
   "8999201779717204412-2611161504-7": {
     "status": "gestrichen",
     "clt": "2611151930",
@@ -954,6 +932,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T07:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "9213468511389413742-2611200907-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T08:07:00.000Z",
     "loggedDelay": 0
   }
 }
