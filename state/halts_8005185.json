@@ -10,17 +10,6 @@
     "plannedTime": "2026-11-16T21:39:00.000Z",
     "loggedDelay": 0
   },
-  "-5498111274338209451-2611142022-2": {
-    "status": "gestrichen",
-    "clt": "2611151149",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-16T19:40:00.000Z",
-    "loggedDelay": 0
-  },
   "-5498111274338209451-2611152022-2": {
     "status": "gestrichen",
     "clt": "2611171124",
@@ -41,28 +30,6 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-17T09:39:00.000Z",
-    "loggedDelay": 0
-  },
-  "-5498111274338209451-2611162022-2": {
-    "status": "gestrichen",
-    "clt": "2611162103",
-    "delay": 50,
-    "messages": "d34;d7;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-16T19:40:00.000Z",
-    "loggedDelay": 50
-  },
-  "7347363591020888163-2611161904-6": {
-    "status": "gestrichen",
-    "clt": "2611152330",
-    "delay": 0,
-    "messages": "d34;d48",
-    "terminus": "",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
-    "after": "",
-    "plannedTime": "2026-11-16T19:40:00.000Z",
     "loggedDelay": 0
   },
   "3053750877042388525-2611162221-2": {
@@ -943,6 +910,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T12:22:00.000Z",
+    "loggedDelay": 0
+  },
+  "8571379389842677519-2611201304-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T13:39:00.000Z",
     "loggedDelay": 0
   }
 }
