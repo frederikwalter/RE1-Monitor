@@ -727,7 +727,7 @@
   },
   "-1057426437887266667-2611190704-7": {
     "status": "gestrichen",
-    "clt": "2611181126",
+    "clt": "2611181156",
     "delay": 0,
     "messages": "d34",
     "terminus": "",
@@ -943,6 +943,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T06:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "-1057426437887266667-2611200704-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T07:55:00.000Z",
     "loggedDelay": 0
   }
 }
