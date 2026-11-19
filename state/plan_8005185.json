@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111622": true,
     "26111623": true,
     "26111700": true,
     "26111701": true,
@@ -81,29 +80,10 @@
     "26112012": true,
     "26112013": true,
     "26112014": true,
-    "26112015": true
+    "26112015": true,
+    "26112016": true
   },
   "stops": {
-    "3053750877042388525-2611142221-2": {
-      "tl": {
-        "c": "RE",
-        "n": "39544",
-        "t": "s"
-      },
-      "ar": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Treuchtlingen"
-      },
-      "dp": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      },
-      "added": true
-    },
     "-5498111274338209451-2611152022-2": {
       "tl": {
         "c": "RE",
@@ -143,45 +123,6 @@
         "ppth": "Nürnberg Hbf"
       },
       "added": true
-    },
-    "3053750877042388525-2611162221-2": {
-      "tl": {
-        "c": "RE",
-        "n": "39544",
-        "t": "s"
-      },
-      "ar": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Treuchtlingen"
-      },
-      "dp": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      },
-      "added": true
-    },
-    "5321437189916721296-2611162104-6": {
-      "tl": {
-        "c": "RE",
-        "n": "4044",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf"
-      },
-      "dp": {
-        "pt": "2611162239",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      }
     },
     "-1023042256064098440-2611162307-2": {
       "tl": {
@@ -1709,6 +1650,25 @@
         "ppth": "Nürnberg Hbf"
       },
       "added": true
+    },
+    "-7930039975586744070-2611201504-6": {
+      "tl": {
+        "c": "RB",
+        "n": "4026",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611201639",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf"
+      },
+      "dp": {
+        "pt": "2611201639",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf"
+      }
     }
   }
 }
