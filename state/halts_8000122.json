@@ -21,17 +21,6 @@
     "plannedTime": "2026-11-16T21:21:00.000Z",
     "loggedDelay": 44
   },
-  "4930918570354887901-2611162107-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-16T20:40:00.000Z",
-    "loggedDelay": 0
-  },
   "-1023042256064098440-2611162307-100": {
     "status": "zusätzlich",
     "clt": "",
@@ -662,35 +651,35 @@
   "7347363591020888163-2611191904-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 36,
+    "delay": 40,
     "messages": "d34",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-19T19:22:00.000Z",
-    "loggedDelay": 36
+    "loggedDelay": 40
   },
   "4930918570354887901-2611192107-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 0,
+    "delay": 4,
     "messages": "d34",
     "terminus": "beginnt hier",
     "before": "",
     "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-19T20:40:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 4
   },
   "5321437189916721296-2611192104-100": {
     "status": "zusätzlich",
     "clt": "",
-    "delay": 8,
+    "delay": 6,
     "messages": "d34",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-19T21:21:00.000Z",
-    "loggedDelay": 8
+    "loggedDelay": 6
   },
   "-1023042256064098440-2611192307-100": {
     "status": "zusätzlich",
@@ -701,6 +690,17 @@
     "before": "",
     "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf",
     "plannedTime": "2026-11-19T22:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "3053750877042388525-2611192221-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "d21",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-19T21:21:00.000Z",
     "loggedDelay": 0
   }
 }
