@@ -671,12 +671,12 @@
     "loggedDelay": 16
   },
   "-2307919218186410793-2611201307-100": {
-    "status": "zusätzlich",
-    "clt": "",
+    "status": "teilweise gestrichen",
+    "clt": "2611200453",
     "delay": 0,
     "messages": "d34;f2000",
-    "terminus": "",
-    "before": "Nürnberg Hbf|Roth",
+    "terminus": "beginnt hier",
+    "before": "",
     "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-20T12:40:00.000Z",
     "loggedDelay": 0
@@ -740,10 +740,10 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "d34",
+    "messages": "d34;f2000",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "Roth|Nürnberg Hbf",
     "plannedTime": "2026-11-20T09:21:00.000Z",
     "loggedDelay": 0
   },
@@ -844,6 +844,50 @@
     "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-20T05:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "5321437189916721296-2611202104-100": {
+    "status": "teilweise gestrichen",
+    "clt": "2611200443",
+    "delay": 0,
+    "messages": "d34;f2000",
+    "terminus": "endet hier",
+    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
+    "after": "",
+    "plannedTime": "2026-11-20T21:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "3804722052049511935-2611202107-100": {
+    "status": "teilweise gestrichen",
+    "clt": "2611200445",
+    "delay": 0,
+    "messages": "d34;f2000",
+    "terminus": "beginnt hier",
+    "before": "",
+    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
+    "plannedTime": "2026-11-20T20:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "3053750877042388525-2611202238-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "d21",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T21:38:00.000Z",
+    "loggedDelay": 0
+  },
+  "-8976488520505399473-2611202040-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "d34",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T19:40:00.000Z",
     "loggedDelay": 0
   }
 }

@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111705": true,
     "26111706": true,
     "26111707": true,
     "26111708": true,
@@ -83,7 +82,8 @@
     "26112019": true,
     "26112020": true,
     "26112021": true,
-    "26112022": true
+    "26112022": true,
+    "26112023": true
   },
   "stops": {
     "-5498111274338209451-2611152022-2": {
@@ -125,25 +125,6 @@
         "ppth": "Nürnberg Hbf"
       },
       "added": true
-    },
-    "6106442635410950120-2611170507-2": {
-      "tl": {
-        "c": "RE",
-        "n": "4001",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611170522",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      },
-      "dp": {
-        "pt": "2611170522",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
-      }
     },
     "-3901580007931980802-2611170500-7": {
       "tl": {
@@ -1762,6 +1743,65 @@
       },
       "dp": {
         "pt": "2611201039",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf"
+      },
+      "added": true
+    },
+    "-1023042256064098440-2611202307-2": {
+      "tl": {
+        "c": "RE",
+        "n": "4043",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611202322",
+        "pp": "3",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf"
+      },
+      "dp": {
+        "pt": "2611202322",
+        "pp": "3",
+        "l": "RE1",
+        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf"
+      }
+    },
+    "3053750877042388525-2611202238-2": {
+      "tl": {
+        "c": "RE",
+        "n": "39544",
+        "t": "s"
+      },
+      "ar": {
+        "pt": "2611202302",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Treuchtlingen"
+      },
+      "dp": {
+        "pt": "2611202304",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf"
+      },
+      "added": true
+    },
+    "-8976488520505399473-2611202040-2": {
+      "tl": {
+        "c": "RB",
+        "n": "39550",
+        "t": "s"
+      },
+      "ar": {
+        "pt": "2611202102",
+        "pp": "2",
+        "l": "RE1",
+        "ppth": "Treuchtlingen"
+      },
+      "dp": {
+        "pt": "2611202104",
         "pp": "2",
         "l": "RE1",
         "ppth": "Nürnberg Hbf"
