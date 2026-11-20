@@ -1225,6 +1225,20 @@
         "l": "RE1",
         "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
       }
+    },
+    "2163926569531235585-2611201021-3": {
+      "tl": {
+        "c": "RE",
+        "n": "39540",
+        "t": "e"
+      },
+      "ar": {
+        "pt": "2611201055",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "Treuchtlingen|Roth"
+      },
+      "added": true
     }
   }
 }
