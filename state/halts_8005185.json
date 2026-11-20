@@ -10,17 +10,6 @@
     "plannedTime": "2026-11-17T19:40:00.000Z",
     "loggedDelay": 0
   },
-  "2955794499665047911-2611171107-2": {
-    "status": "gestrichen",
-    "clt": "2611171127",
-    "delay": 0,
-    "messages": "d36;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-17T10:22:00.000Z",
-    "loggedDelay": 0
-  },
   "-7456143198501088009-2611171104-6": {
     "status": "gestrichen",
     "clt": "2611171127",
@@ -871,7 +860,7 @@
   "2163926569531235585-2611201021-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 27,
+    "delay": 31,
     "messages": "d21;d34;f2000",
     "terminus": "",
     "before": "Treuchtlingen",
