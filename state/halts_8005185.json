@@ -10,39 +10,6 @@
     "plannedTime": "2026-11-17T19:40:00.000Z",
     "loggedDelay": 0
   },
-  "9146765748476800288-2611151021-2": {
-    "status": "gestrichen",
-    "clt": "2611171054",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-17T09:39:00.000Z",
-    "loggedDelay": 0
-  },
-  "9146765748476800288-2611171021-2": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 10,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-17T09:39:00.000Z",
-    "loggedDelay": 10
-  },
-  "9056467743579878345-2611170904-6": {
-    "status": "gestrichen",
-    "clt": "2611171057",
-    "delay": 0,
-    "messages": "d36;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-17T09:39:00.000Z",
-    "loggedDelay": 0
-  },
   "2955794499665047911-2611171107-2": {
     "status": "gestrichen",
     "clt": "2611171127",
@@ -904,13 +871,13 @@
   "2163926569531235585-2611201021-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "d34;f2000",
+    "delay": 27,
+    "messages": "d21;d34;f2000",
     "terminus": "",
     "before": "Treuchtlingen",
     "after": "Nürnberg Hbf",
     "plannedTime": "2026-11-20T09:39:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 27
   },
   "-1023042256064098440-2611202307-2": {
     "status": "gestrichen",
