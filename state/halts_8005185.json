@@ -761,13 +761,13 @@
   "-3901580007931980802-2611200500-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 12,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T05:39:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 12
   },
   "2509481361772693088-2611200707-2": {
     "status": "planmäßig",
@@ -943,6 +943,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T20:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "5321437189916721296-2611202104-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T21:39:00.000Z",
     "loggedDelay": 0
   }
 }
