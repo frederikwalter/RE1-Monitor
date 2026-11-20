@@ -651,13 +651,13 @@
   "5321437189916721296-2611202104-100": {
     "status": "teilweise gestrichen",
     "clt": "2611200443",
-    "delay": 11,
+    "delay": 17,
     "messages": "d34;f2000",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-20T21:21:00.000Z",
-    "loggedDelay": 11
+    "loggedDelay": 17
   },
   "3804722052049511935-2611202107-100": {
     "status": "teilweise gestrichen",
