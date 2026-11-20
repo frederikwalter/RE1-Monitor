@@ -21,17 +21,6 @@
     "plannedTime": "2026-11-17T09:39:00.000Z",
     "loggedDelay": 0
   },
-  "-3901580007931980802-2611170500-7": {
-    "status": "gestrichen",
-    "clt": "2611171126",
-    "delay": 0,
-    "messages": "d31;f2000",
-    "terminus": "",
-    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
-    "after": "",
-    "plannedTime": "2026-11-17T05:39:00.000Z",
-    "loggedDelay": 0
-  },
   "2509481361772693088-2611170707-2": {
     "status": "gestrichen",
     "clt": "2611171127",
@@ -740,7 +729,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 2,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -987,6 +976,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T20:04:00.000Z",
+    "loggedDelay": 0
+  },
+  "6306918419691815906-2611202305-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-20T23:49:00.000Z",
     "loggedDelay": 0
   }
 }
