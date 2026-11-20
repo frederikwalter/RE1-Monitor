@@ -1,15 +1,4 @@
 {
-  "-7456143198501088009-2611171104-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 26,
-    "messages": "d34;f2000",
-    "terminus": "endet hier",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
-    "after": "",
-    "plannedTime": "2026-11-17T11:21:00.000Z",
-    "loggedDelay": 26
-  },
   "8571379389842677519-2611171304-100": {
     "status": "zusätzlich",
     "clt": "",
@@ -607,13 +596,13 @@
   "-7456143198501088009-2611201104-100": {
     "status": "teilweise gestrichen",
     "clt": "2611200452",
-    "delay": 5,
+    "delay": 21,
     "messages": "d34;f2000",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-20T11:21:00.000Z",
-    "loggedDelay": 5
+    "loggedDelay": 21
   },
   "9213468511389413742-2611200907-100": {
     "status": "teilweise gestrichen",
@@ -640,13 +629,13 @@
   "8571379389842677519-2611201304-100": {
     "status": "teilweise gestrichen",
     "clt": "2611200450",
-    "delay": 0,
+    "delay": 22,
     "messages": "d34;f2000",
     "terminus": "endet hier",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "",
     "plannedTime": "2026-11-20T13:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 22
   },
   "9056467743579878345-2611200904-100": {
     "status": "teilweise gestrichen",
