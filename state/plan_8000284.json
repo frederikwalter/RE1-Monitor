@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111723": true,
     "26111800": true,
     "26111801": true,
     "26111804": true,
@@ -83,49 +82,10 @@
     "26112113": true,
     "26112114": true,
     "26112115": true,
-    "26112116": true
+    "26112116": true,
+    "26112117": true
   },
   "stops": {
-    "3053750877042388525-2611172221-3": {
-      "tl": {
-        "c": "RE",
-        "n": "39544",
-        "t": "s"
-      },
-      "ar": {
-        "pt": "2611172255",
-        "pp": "7",
-        "l": "RE1",
-        "ppth": "Treuchtlingen|Roth"
-      },
-      "added": true
-    },
-    "5321437189916721296-2611172104-7": {
-      "tl": {
-        "c": "RE",
-        "n": "4044",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611172255",
-        "pp": "7",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
-      }
-    },
-    "-1023042256064098440-2611172307-1": {
-      "tl": {
-        "c": "RE",
-        "n": "4043",
-        "t": "p"
-      },
-      "dp": {
-        "pt": "2611172307",
-        "pp": "7",
-        "l": "RE1",
-        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf"
-      }
-    },
     "6306918419691815906-2611172305-7": {
       "tl": {
         "c": "RE",
@@ -1288,6 +1248,32 @@
         "pp": "5 C-F",
         "l": "RE1",
         "ppth": "Augsburg Hbf|München Hbf"
+      }
+    },
+    "-6578855539056541812-2611211605-3": {
+      "tl": {
+        "c": "RE",
+        "n": "4028",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611211749",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "München Hbf|Augsburg Hbf"
+      }
+    },
+    "4310905702592483103-2611211707-1": {
+      "tl": {
+        "c": "RB",
+        "n": "59411",
+        "t": "p"
+      },
+      "dp": {
+        "pt": "2611211707",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
       }
     }
   }
