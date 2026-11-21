@@ -1,15 +1,4 @@
 {
-  "-1023042256064098440-2611182307-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 37,
-    "messages": "d34;f2000",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf",
-    "plannedTime": "2026-11-18T22:40:00.000Z",
-    "loggedDelay": 37
-  },
   "-3901580007931980802-2611190500-100": {
     "status": "zusätzlich",
     "clt": "",
