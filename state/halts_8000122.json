@@ -1,15 +1,4 @@
 {
-  "-7456143198501088009-2611181104-100": {
-    "status": "zusätzlich",
-    "clt": "",
-    "delay": 43,
-    "messages": "d34;d48;f2000",
-    "terminus": "endet hier",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
-    "after": "",
-    "plannedTime": "2026-11-18T11:21:00.000Z",
-    "loggedDelay": 43
-  },
   "-2307919218186410793-2611181307-100": {
     "status": "zusätzlich",
     "clt": "",
