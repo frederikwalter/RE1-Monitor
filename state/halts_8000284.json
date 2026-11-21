@@ -1,26 +1,4 @@
 {
-  "-7456143198501088009-2611181104-7": {
-    "status": "gestrichen",
-    "clt": "2611181156",
-    "delay": 0,
-    "messages": "d34;d48;f2000",
-    "terminus": "",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
-    "after": "",
-    "plannedTime": "2026-11-18T11:55:00.000Z",
-    "loggedDelay": 0
-  },
-  "-2307919218186410793-2611181307-1": {
-    "status": "gestrichen",
-    "clt": "2611181155",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-18T12:07:00.000Z",
-    "loggedDelay": 0
-  },
   "8571379389842677519-2611181304-7": {
     "status": "gestrichen",
     "clt": "2611181155",
@@ -772,7 +750,7 @@
   "1259468410947182792-2611211103-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 6,
+    "delay": 8,
     "messages": "d43",
     "terminus": "",
     "before": "",
@@ -784,7 +762,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -794,7 +772,7 @@
   "1569485389179239909-2611211204-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 3,
     "messages": "d43",
     "terminus": "",
     "before": "",
@@ -805,7 +783,7 @@
   "-7111542173623466627-2611211307-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 5,
+    "delay": 3,
     "messages": "d48",
     "terminus": "",
     "before": "",
@@ -816,13 +794,13 @@
   "7262523588411774200-2611211304-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 35,
-    "messages": "d48;f2000",
+    "delay": 43,
+    "messages": "d43;d48;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-21T13:55:00.000Z",
-    "loggedDelay": 35
+    "loggedDelay": 43
   },
   "2876387611325759240-2611211408-1": {
     "status": "planmäßig",
@@ -849,13 +827,13 @@
   "-3268395840705496538-2611211507-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 30,
+    "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-21T14:07:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 30
   },
   "-1397927430332464786-2611211504-7": {
     "status": "planmäßig",
@@ -1042,6 +1020,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T05:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "5909422659134048484-2611220707-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-22T06:07:00.000Z",
     "loggedDelay": 0
   }
 }
