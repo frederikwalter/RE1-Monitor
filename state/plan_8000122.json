@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111819": true,
     "26111820": true,
     "26111821": true,
     "26111822": true,
@@ -89,7 +88,8 @@
     "26112209": true,
     "26112210": true,
     "26112211": true,
-    "26112212": true
+    "26112212": true,
+    "26112213": true
   },
   "stops": {
     "-7015015412950825201-2611182022-1": {
@@ -117,27 +117,6 @@
         "pp": "3",
         "l": "RE1",
         "ppth": "Roth|Nürnberg Hbf"
-      },
-      "added": true
-    },
-    "-7173313963166475560-2611181908-100": {
-      "tl": {
-        "c": "RE",
-        "n": "4037",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611181940",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf|Roth",
-        "ps": "a"
-      },
-      "dp": {
-        "pt": "2611181940",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-        "ps": "a"
       },
       "added": true
     },
