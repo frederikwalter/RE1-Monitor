@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111817": true,
     "26111818": true,
     "26111819": true,
     "26111820": true,
@@ -85,35 +84,10 @@
     "26112207": true,
     "26112208": true,
     "26112209": true,
-    "26112210": true
+    "26112210": true,
+    "26112211": true
   },
   "stops": {
-    "8999201779717204412-2611181504-7": {
-      "tl": {
-        "c": "RE",
-        "n": "4026",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611181656",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
-      }
-    },
-    "-8110258217593167614-2611181707-1": {
-      "tl": {
-        "c": "RE",
-        "n": "4031",
-        "t": "p"
-      },
-      "dp": {
-        "pt": "2611181707",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
-      }
-    },
     "4261737417841218390-2611181704-7": {
       "tl": {
         "c": "RE",
@@ -1366,6 +1340,32 @@
         "pp": "5 C-F",
         "l": "RE1",
         "ppth": "Augsburg Hbf|München Hbf"
+      }
+    },
+    "83079419740237979-2611221004-3": {
+      "tl": {
+        "c": "RE",
+        "n": "4012",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611221149",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "München Hbf|Augsburg Hbf"
+      }
+    },
+    "-561932708992758554-2611221107-1": {
+      "tl": {
+        "c": "RB",
+        "n": "59405",
+        "t": "p"
+      },
+      "dp": {
+        "pt": "2611221107",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
       }
     }
   }
