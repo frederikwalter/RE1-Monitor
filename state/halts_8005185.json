@@ -883,7 +883,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -899,6 +899,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-21T19:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2819116478804696918-2611212107-2": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-21T20:21:00.000Z",
     "loggedDelay": 0
   }
 }
