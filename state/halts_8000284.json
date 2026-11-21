@@ -816,7 +816,7 @@
   "-6578855539056541812-2611211605-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 12,
+    "delay": 14,
     "messages": "d43",
     "terminus": "",
     "before": "",
@@ -828,7 +828,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -838,18 +838,18 @@
   "-2734995039975038553-2611211704-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 10,
+    "delay": 4,
     "messages": "q88;q92;q97",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-21T17:55:00.000Z",
-    "loggedDelay": 11
+    "loggedDelay": 4
   },
   "-6208140427880646318-2611211808-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 5,
+    "delay": 6,
     "messages": "d48",
     "terminus": "",
     "before": "",
@@ -872,7 +872,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "f2000",
+    "messages": "f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -882,13 +882,13 @@
   "6296899451022645850-2611211904-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 13,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-21T19:56:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 13
   },
   "-277955073194021155-2611212008-1": {
     "status": "planmäßig",
@@ -1075,6 +1075,28 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T10:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "1259468410947182792-2611221103-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-22T11:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "1073334805888498002-2611221208-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-22T11:08:00.000Z",
     "loggedDelay": 0
   }
 }
