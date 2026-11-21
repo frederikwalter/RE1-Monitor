@@ -21,17 +21,6 @@
     "plannedTime": "2026-11-18T21:21:00.000Z",
     "loggedDelay": 58
   },
-  "4930918570354887901-2611182107-100": {
-    "status": "teilweise gestrichen",
-    "clt": "2611181953",
-    "delay": 0,
-    "messages": "d34;d40",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-18T20:40:00.000Z",
-    "loggedDelay": 0
-  },
   "-1023042256064098440-2611182307-100": {
     "status": "zusätzlich",
     "clt": "",
