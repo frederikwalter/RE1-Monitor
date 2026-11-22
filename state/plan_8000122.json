@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26111922": true,
     "26111923": true,
     "26112000": true,
     "26112001": true,
@@ -89,30 +88,10 @@
     "26112312": true,
     "26112313": true,
     "26112314": true,
-    "26112315": true
+    "26112315": true,
+    "26112316": true
   },
   "stops": {
-    "5321437189916721296-2611192104-100": {
-      "tl": {
-        "c": "RE",
-        "n": "4044",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611192221",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
-        "ps": "a"
-      },
-      "dp": {
-        "pt": "2611192221",
-        "l": "RE1",
-        "ppth": "Roth|Nürnberg Hbf",
-        "ps": "a"
-      },
-      "added": true
-    },
     "-1023042256064098440-2611192307-100": {
       "tl": {
         "c": "RE",
@@ -131,20 +110,6 @@
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf",
         "ps": "a"
-      },
-      "added": true
-    },
-    "3053750877042388525-2611192221-1": {
-      "tl": {
-        "c": "RE",
-        "n": "39544",
-        "t": "s"
-      },
-      "dp": {
-        "pt": "2611192221",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Roth|Nürnberg Hbf"
       },
       "added": true
     },
@@ -727,6 +692,19 @@
         "pp": "",
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
+      }
+    },
+    "8999201779717204412-2611231504-6": {
+      "tl": {
+        "c": "RE",
+        "n": "4026",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611231621",
+        "pp": "",
+        "l": "RE1",
+        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf"
       }
     }
   }
