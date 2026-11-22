@@ -684,8 +684,8 @@
   "-8553592779767476244-2611221704-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 14,
-    "messages": "d37",
+    "delay": 16,
+    "messages": "d37;f2000;q88;q92;q97",
     "terminus": "",
     "before": "",
     "after": "",
@@ -706,7 +706,7 @@
   "4310905702592483103-2611221707-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 7,
+    "delay": 6,
     "messages": "d48;f2000;q85;q88;q92;q97",
     "terminus": "",
     "before": "",
