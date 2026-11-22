@@ -92,27 +92,6 @@
     "26112317": true
   },
   "stops": {
-    "-1023042256064098440-2611192307-100": {
-      "tl": {
-        "c": "RE",
-        "n": "4043",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611192340",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf|Roth",
-        "ps": "a"
-      },
-      "dp": {
-        "pt": "2611192340",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf",
-        "ps": "a"
-      },
-      "added": true
-    },
     "-2307919218186410793-2611201307-100": {
       "tl": {
         "c": "RE",
