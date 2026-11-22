@@ -860,7 +860,7 @@
   "225656348450795434-2611220802-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 28,
+    "delay": 26,
     "messages": "d48;f2000",
     "terminus": "",
     "before": "",
@@ -871,7 +871,7 @@
   "5313323300037143342-2611220907-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 10,
+    "delay": 9,
     "messages": "d48;f0;f2000",
     "terminus": "",
     "before": "",
@@ -882,8 +882,8 @@
   "7941894357234867037-2611220903-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 12,
-    "messages": "",
+    "delay": 10,
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
