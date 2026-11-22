@@ -1014,13 +1014,13 @@
   "-3282248456543454646-2611221758-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 5,
-    "messages": "q77;q83;q95",
+    "delay": 29,
+    "messages": "d38;q77;q83;q95",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T18:49:00.000Z",
-    "loggedDelay": 5
+    "loggedDelay": 29
   },
   "-2293696810884829255-2611221908-1": {
     "status": "gestrichen",
@@ -1036,30 +1036,30 @@
   "6296899451022645850-2611221904-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 9,
-    "messages": "",
+    "delay": 35,
+    "messages": "d34;d43;d67;f0",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T19:56:00.000Z",
-    "loggedDelay": 13
+    "loggedDelay": 35
   },
   "-277955073194021155-2611222008-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "q77;q83;q85;q95",
+    "delay": 38,
+    "messages": "d48;d67;f0;q77;q83;q85;q95",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T19:08:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 38
   },
   "3442276589121377598-2611221958-3": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
@@ -1069,24 +1069,24 @@
   "-2819116478804696918-2611222107-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 31,
     "messages": "",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T20:07:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 31
   },
   "2957887540083220261-2611222104-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 11,
     "messages": "q82",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T21:55:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 11
   },
   "-1023042256064098440-2611222307-1": {
     "status": "planmäßig",
