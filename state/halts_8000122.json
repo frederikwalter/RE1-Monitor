@@ -355,7 +355,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -371,6 +371,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T16:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "4261737417841218390-2611231704-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-23T17:21:00.000Z",
     "loggedDelay": 0
   }
 }
