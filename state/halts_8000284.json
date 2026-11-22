@@ -1,26 +1,4 @@
 {
-  "4261737417841218390-2611191704-7": {
-    "status": "gestrichen",
-    "clt": "2611182130",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Treuchtlingen",
-    "after": "",
-    "plannedTime": "2026-11-19T17:55:00.000Z",
-    "loggedDelay": 0
-  },
-  "-7173313963166475560-2611191908-1": {
-    "status": "gestrichen",
-    "clt": "2611182330",
-    "delay": 0,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "Treuchtlingen|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-19T18:08:00.000Z",
-    "loggedDelay": 0
-  },
   "7347363591020888163-2611191904-7": {
     "status": "gestrichen",
     "clt": "2611182330",
@@ -948,13 +926,13 @@
   "-8553592779767476244-2611221704-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 23,
+    "delay": 46,
     "messages": "d37;f2000;q88;q92;q97",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T17:55:00.000Z",
-    "loggedDelay": 23
+    "loggedDelay": 46
   },
   "-1397927430332464786-2611221504-7": {
     "status": "planmäßig",
@@ -1003,13 +981,13 @@
   "3996791956748484416-2611221908-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 17,
-    "messages": "d37;f0",
+    "delay": 50,
+    "messages": "d34;d37;f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T18:08:00.000Z",
-    "loggedDelay": 17
+    "loggedDelay": 50
   },
   "-2734995039975038553-2611221704-7": {
     "status": "gestrichen",
@@ -1036,13 +1014,13 @@
   "-3282248456543454646-2611221758-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 3,
+    "delay": 5,
     "messages": "q77;q83;q95",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-22T18:49:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 5
   },
   "-2293696810884829255-2611221908-1": {
     "status": "gestrichen",
@@ -1058,7 +1036,7 @@
   "6296899451022645850-2611221904-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 13,
+    "delay": 9,
     "messages": "",
     "terminus": "",
     "before": "",
