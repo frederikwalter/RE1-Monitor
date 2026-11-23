@@ -1,15 +1,4 @@
 {
-  "-1023042256064098440-2611202307-100": {
-    "status": "teilweise gestrichen",
-    "clt": "2611200444",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf",
-    "plannedTime": "2026-11-20T22:40:00.000Z",
-    "loggedDelay": 0
-  },
   "6106442635410950120-2611230507-3": {
     "status": "teilweise gestrichen",
     "clt": "2611220930",
@@ -189,35 +178,35 @@
   "-1498592995152781462-2611232140-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 20,
+    "delay": 84,
     "messages": "d42;d55;f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T20:40:00.000Z",
-    "loggedDelay": 20
+    "loggedDelay": 84
   },
   "5321437189916721296-2611232104-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 101,
+    "delay": 108,
     "messages": "d17;d42;d48;d7;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T21:21:00.000Z",
-    "loggedDelay": 101
+    "loggedDelay": 108
   },
   "-6290496658523110803-2611232340-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "d42;f2000",
+    "delay": 30,
+    "messages": "d17;d42;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T22:40:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 30
   },
   "-3901580007931980802-2611240500-7": {
     "status": "planmäßig",
@@ -333,11 +322,22 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-24T15:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "5088136795344272971-2611241740-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-24T16:40:00.000Z",
     "loggedDelay": 0
   }
 }
