@@ -1,15 +1,4 @@
 {
-  "-7492429468465532583-2611201904-100": {
-    "status": "teilweise gestrichen",
-    "clt": "2611200445",
-    "delay": 17,
-    "messages": "d34;f2000",
-    "terminus": "endet hier",
-    "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
-    "after": "",
-    "plannedTime": "2026-11-20T19:22:00.000Z",
-    "loggedDelay": 17
-  },
   "5321437189916721296-2611202104-100": {
     "status": "teilweise gestrichen",
     "clt": "2611200443",
@@ -41,17 +30,6 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-20T21:38:00.000Z",
-    "loggedDelay": 4
-  },
-  "-8976488520505399473-2611202040-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 4,
-    "messages": "d34",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-20T19:40:00.000Z",
     "loggedDelay": 4
   },
   "-1023042256064098440-2611202307-100": {
@@ -233,13 +211,13 @@
   "7347363591020888163-2611231904-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 42,
+    "delay": 33,
     "messages": "d42;d48;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T19:22:00.000Z",
-    "loggedDelay": 42
+    "loggedDelay": 33
   },
   "-1498592995152781462-2611232140-1": {
     "status": "planmäßig",
@@ -255,13 +233,13 @@
   "5321437189916721296-2611232104-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 38,
     "messages": "d42;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T21:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 38
   },
   "-6290496658523110803-2611232340-1": {
     "status": "planmäßig",
@@ -360,6 +338,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-24T12:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "8571379389842677519-2611241304-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-24T13:21:00.000Z",
     "loggedDelay": 0
   }
 }
