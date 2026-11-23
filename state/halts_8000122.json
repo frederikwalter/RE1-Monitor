@@ -21,17 +21,6 @@
     "plannedTime": "2026-11-20T11:21:00.000Z",
     "loggedDelay": 21
   },
-  "9213468511389413742-2611200907-100": {
-    "status": "teilweise gestrichen",
-    "clt": "2611200443",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-20T08:40:00.000Z",
-    "loggedDelay": 0
-  },
   "-8483210532685931151-2611201507-100": {
     "status": "teilweise gestrichen",
     "clt": "2611200451",
@@ -233,19 +222,19 @@
   "-1057426437887266667-2611230704-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 42,
+    "delay": 41,
     "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T07:22:00.000Z",
-    "loggedDelay": 42
+    "loggedDelay": 41
   },
   "8154882097326457376-2611230940-1": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f0",
     "terminus": "",
     "before": "",
     "after": "",
@@ -255,13 +244,13 @@
   "9056467743579878345-2611230904-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 28,
-    "messages": "",
+    "delay": 29,
+    "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T09:21:00.000Z",
-    "loggedDelay": 28
+    "loggedDelay": 29
   },
   "4082305979675784231-2611231140-1": {
     "status": "planmäßig",
@@ -277,13 +266,13 @@
   "-7456143198501088009-2611231104-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 28,
+    "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T11:21:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 28
   },
   "626977661704488830-2611231340-1": {
     "status": "planmäßig",
