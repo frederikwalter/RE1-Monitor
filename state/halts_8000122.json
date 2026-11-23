@@ -10,17 +10,6 @@
     "plannedTime": "2026-11-20T21:21:00.000Z",
     "loggedDelay": 19
   },
-  "3804722052049511935-2611202107-100": {
-    "status": "teilweise gestrichen",
-    "clt": "2611200445",
-    "delay": 0,
-    "messages": "d34;f2000",
-    "terminus": "beginnt hier",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
-    "plannedTime": "2026-11-20T20:40:00.000Z",
-    "loggedDelay": 0
-  },
   "3053750877042388525-2611202238-1": {
     "status": "planmäßig",
     "clt": "",
@@ -223,7 +212,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "d42;f2000",
+    "messages": "d42;f0;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -233,19 +222,19 @@
   "5321437189916721296-2611232104-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 38,
-    "messages": "d42;f2000",
+    "delay": 61,
+    "messages": "d42;d48;d7;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-23T21:21:00.000Z",
-    "loggedDelay": 38
+    "loggedDelay": 61
   },
   "-6290496658523110803-2611232340-1": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "d42;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -256,7 +245,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "d42;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -267,7 +256,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "d42;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -349,6 +338,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-24T13:21:00.000Z",
+    "loggedDelay": 0
+  },
+  "5317053380680306647-2611241540-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-24T14:40:00.000Z",
     "loggedDelay": 0
   }
 }
