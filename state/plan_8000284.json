@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112011": true,
     "26112012": true,
     "26112013": true,
     "26112014": true,
@@ -85,35 +84,10 @@
     "26112323": true,
     "26112400": true,
     "26112401": true,
-    "26112404": true
+    "26112404": true,
+    "26112405": true
   },
   "stops": {
-    "9056467743579878345-2611200904-7": {
-      "tl": {
-        "c": "RE",
-        "n": "4010",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611201055",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
-      }
-    },
-    "2955794499665047911-2611201107-1": {
-      "tl": {
-        "c": "RE",
-        "n": "4019",
-        "t": "p"
-      },
-      "dp": {
-        "pt": "2611201107",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
-      }
-    },
     "-7456143198501088009-2611201104-7": {
       "tl": {
         "c": "RE",
@@ -256,20 +230,6 @@
         "l": "RE1",
         "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
       }
-    },
-    "2163926569531235585-2611201021-3": {
-      "tl": {
-        "c": "RE",
-        "n": "39540",
-        "t": "e"
-      },
-      "ar": {
-        "pt": "2611201055",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "Treuchtlingen|Roth"
-      },
-      "added": true
     },
     "-1023042256064098440-2611202307-1": {
       "tl": {
@@ -1289,6 +1249,19 @@
         "pp": "5",
         "l": "RE1",
         "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
+      }
+    },
+    "6106442635410950120-2611240507-1": {
+      "tl": {
+        "c": "RE",
+        "n": "4001",
+        "t": "p"
+      },
+      "dp": {
+        "pt": "2611240507",
+        "pp": "8 D-F",
+        "l": "RE1",
+        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
       }
     }
   }
