@@ -1,26 +1,4 @@
 {
-  "-3901580007931980802-2611210500-8": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 30,
-    "messages": "d40;d43;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-21T05:54:00.000Z",
-    "loggedDelay": 30
-  },
-  "5909422659134048484-2611210707-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 5,
-    "messages": "q82",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-21T06:07:00.000Z",
-    "loggedDelay": 5
-  },
   "-1057426437887266667-2611210704-7": {
     "status": "planmäßig",
     "clt": "",
@@ -811,6 +789,17 @@
     "before": "",
     "after": "Roth|Treuchtlingen|München Hbf",
     "plannedTime": "2026-11-24T04:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "6306918419691815906-2611242305-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-25T00:05:00.000Z",
     "loggedDelay": 0
   }
 }
