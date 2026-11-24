@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112108": true,
     "26112109": true,
     "26112110": true,
     "26112111": true,
@@ -99,19 +98,6 @@
         "pp": "5 C-F",
         "l": "RE1",
         "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth"
-      }
-    },
-    "2180632807117550704-2611210808-1": {
-      "tl": {
-        "c": "RE",
-        "n": "4011",
-        "t": "p"
-      },
-      "dp": {
-        "pt": "2611210808",
-        "pp": "5 C-F",
-        "l": "RE1",
-        "ppth": "Augsburg Hbf|München Hbf"
       }
     },
     "225656348450795434-2611210802-3": {
