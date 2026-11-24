@@ -1,15 +1,4 @@
 {
-  "7262523588411774200-2611211304-6": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 37,
-    "messages": "d43;d48;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-21T13:39:00.000Z",
-    "loggedDelay": 39
-  },
   "-3268395840705496538-2611211507-2": {
     "status": "planmäßig",
     "clt": "",
