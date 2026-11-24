@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112112": true,
     "26112113": true,
     "26112114": true,
     "26112115": true,
@@ -89,7 +88,8 @@
     "26112502": true,
     "26112503": true,
     "26112504": true,
-    "26112505": true
+    "26112505": true,
+    "26112506": true
   },
   "stops": {
     "6106442635410950120-2611230507-3": {
@@ -594,6 +594,19 @@
         "ps": "a"
       },
       "added": true
+    },
+    "-3901580007931980802-2611250500-7": {
+      "tl": {
+        "c": "RE",
+        "n": "4000",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611250621",
+        "pp": "3",
+        "l": "RE1",
+        "ppth": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf"
+      }
     }
   }
 }
