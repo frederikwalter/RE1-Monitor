@@ -123,13 +123,13 @@
   "6306918419691815906-2611252305-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 47,
+    "messages": "d8",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-26T00:05:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 47
   },
   "6106442635410950120-2611260507-1": {
     "status": "planmäßig",
