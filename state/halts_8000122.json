@@ -801,5 +801,16 @@
     "after": "Roth|Nürnberg Hbf",
     "plannedTime": "2026-11-25T23:27:00.000Z",
     "loggedDelay": 34
+  },
+  "4261737417841218390-2611261704-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-26T17:21:00.000Z",
+    "loggedDelay": 0
   }
 }
