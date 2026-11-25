@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112217": true,
     "26112218": true,
     "26112219": true,
     "26112220": true,
@@ -81,7 +80,8 @@
     "26112607": true,
     "26112608": true,
     "26112609": true,
-    "26112610": true
+    "26112610": true,
+    "26112611": true
   },
   "stops": {
     "-8553592779767476244-2611221704-6": {
@@ -103,25 +103,6 @@
         "ppth": "Nürnberg Hbf"
       },
       "added": true
-    },
-    "4310905702592483103-2611221707-2": {
-      "tl": {
-        "c": "RB",
-        "n": "59411",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611221722",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      },
-      "dp": {
-        "pt": "2611221722",
-        "pp": "3",
-        "l": "RE1",
-        "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
-      }
     },
     "3996791956748484416-2611221908-2": {
       "tl": {
@@ -464,6 +445,25 @@
         "pp": "3",
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
+      }
+    },
+    "-7272995831113849677-2611261048-2": {
+      "tl": {
+        "c": "RB",
+        "n": "59694",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611261105",
+        "pp": "",
+        "l": "RE1",
+        "ppth": "Treuchtlingen"
+      },
+      "dp": {
+        "pt": "2611261106",
+        "pp": "",
+        "l": "RE1",
+        "ppth": "Nürnberg Hbf"
       }
     }
   }
