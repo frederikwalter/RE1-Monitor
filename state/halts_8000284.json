@@ -10,17 +10,6 @@
     "plannedTime": "2026-11-22T05:54:00.000Z",
     "loggedDelay": 10
   },
-  "-3535627008434506774-2611220607-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 0,
-    "messages": "d43",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-22T05:07:00.000Z",
-    "loggedDelay": 0
-  },
   "5909422659134048484-2611220707-1": {
     "status": "planmäßig",
     "clt": "",
@@ -498,7 +487,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f0",
     "terminus": "",
     "before": "",
     "after": "",
