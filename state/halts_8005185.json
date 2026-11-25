@@ -1,15 +1,4 @@
 {
-  "-1023042256064098440-2611222307-2": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 3,
-    "messages": "d43;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-22T22:22:00.000Z",
-    "loggedDelay": 0
-  },
   "2937539297421099214-2611222305-6": {
     "status": "planmäßig",
     "clt": "",
@@ -101,7 +90,7 @@
   "1400460681812938924-2611252241-2": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 1,
+    "delay": 2,
     "messages": "f0",
     "terminus": "",
     "before": "",
@@ -112,13 +101,13 @@
   "6306918419691815906-2611252305-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 48,
-    "messages": "d8",
+    "delay": 31,
+    "messages": "d8;f2000",
     "terminus": "",
-    "before": "",
-    "after": "",
+    "before": "München Hbf|Treuchtlingen",
+    "after": "Nürnberg Hbf",
     "plannedTime": "2026-11-25T23:49:00.000Z",
-    "loggedDelay": 48
+    "loggedDelay": 31
   },
   "6106442635410950120-2611260507-2": {
     "status": "planmäßig",

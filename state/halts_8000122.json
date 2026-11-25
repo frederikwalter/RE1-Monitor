@@ -641,10 +641,10 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "d8",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "München Hbf",
     "plannedTime": "2026-11-25T22:40:00.000Z",
     "loggedDelay": 0
   },
@@ -773,11 +773,33 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-26T15:21:00.000Z",
     "loggedDelay": 0
+  },
+  "5088136795344272971-2611261740-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-26T16:40:00.000Z",
+    "loggedDelay": 0
+  },
+  "6306918419691815906-2611252305-100": {
+    "status": "zusätzlich",
+    "clt": "",
+    "delay": 34,
+    "messages": "d8;f2000",
+    "terminus": "",
+    "before": "München Hbf",
+    "after": "Roth|Nürnberg Hbf",
+    "plannedTime": "2026-11-25T23:27:00.000Z",
+    "loggedDelay": 34
   }
 }
