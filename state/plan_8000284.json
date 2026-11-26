@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112311": true,
     "26112312": true,
     "26112313": true,
     "26112314": true,
@@ -81,7 +80,8 @@
     "26112623": true,
     "26112700": true,
     "26112701": true,
-    "26112704": true
+    "26112704": true,
+    "26112705": true
   },
   "stops": {
     "6306918419691815906-2611232305-7": {
@@ -251,6 +251,19 @@
         "pp": "5",
         "l": "RE1",
         "ppth": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Roth"
+      }
+    },
+    "6106442635410950120-2611270507-1": {
+      "tl": {
+        "c": "RE",
+        "n": "4001",
+        "t": "p"
+      },
+      "dp": {
+        "pt": "2611270507",
+        "pp": "8 D-F",
+        "l": "RE1",
+        "ppth": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf"
       }
     }
   }
