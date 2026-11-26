@@ -123,7 +123,7 @@
   "1400460681812938924-2611262241-3": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
+    "delay": 2,
     "messages": "",
     "terminus": "",
     "before": "",
@@ -134,13 +134,13 @@
   "6306918419691815906-2611262300-11": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 8,
-    "messages": "",
+    "delay": 19,
+    "messages": "d36",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-27T00:06:00.000Z",
-    "loggedDelay": 8
+    "loggedDelay": 19
   },
   "6106442635410950120-2611270507-1": {
     "status": "planmäßig",
