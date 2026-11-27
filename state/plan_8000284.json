@@ -480,6 +480,20 @@
         "l": "RE1",
         "ppth": "Augsburg Hbf|München Hbf"
       }
+    },
+    "-428392594988253437-2611281208-1": {
+      "tl": {
+        "c": "RE",
+        "n": "39551",
+        "t": "e"
+      },
+      "dp": {
+        "pt": "2611281208",
+        "pp": "5 C-F",
+        "l": "RE1",
+        "ppth": "Augsburg Hbf|München Hbf"
+      },
+      "added": true
     }
   }
 }
