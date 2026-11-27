@@ -1,15 +1,4 @@
 {
-  "-1498592995152781462-2611242140-1": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 1,
-    "messages": "f0;f2000",
-    "terminus": "",
-    "before": "",
-    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|München Hbf",
-    "plannedTime": "2026-11-24T20:40:00.000Z",
-    "loggedDelay": 1
-  },
   "5321437189916721296-2611242104-6": {
     "status": "planmäßig",
     "clt": "",
@@ -673,30 +662,30 @@
   "-7492429468465532583-2611271904-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 30,
+    "delay": 29,
     "messages": "d34;d48;f2000",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-27T19:22:00.000Z",
-    "loggedDelay": 30
+    "loggedDelay": 29
   },
   "1050705573957811134-2611272040-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "f0",
+    "delay": 13,
+    "messages": "d47;f0",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-27T19:40:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 13
   },
   "7544216817672577777-2611272140-1": {
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f0",
     "terminus": "",
     "before": "",
     "after": "",
@@ -706,24 +695,24 @@
   "5321437189916721296-2611272104-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 29,
-    "messages": "",
+    "delay": 36,
+    "messages": "d48",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-27T21:21:00.000Z",
-    "loggedDelay": 29
+    "loggedDelay": 36
   },
   "1400460681812938924-2611272241-1": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 0,
-    "messages": "",
+    "delay": 5,
+    "messages": "d21",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-27T21:41:00.000Z",
-    "loggedDelay": 0
+    "loggedDelay": 5
   },
   "-6290496658523110803-2611272340-1": {
     "status": "planmäßig",
