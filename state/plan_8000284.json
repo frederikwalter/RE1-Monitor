@@ -1,6 +1,5 @@
 {
   "slices": {
-    "26112407": true,
     "26112408": true,
     "26112409": true,
     "26112410": true,
@@ -83,7 +82,8 @@
     "26112721": true,
     "26112722": true,
     "26112723": true,
-    "26112800": true
+    "26112800": true,
+    "26112801": true
   },
   "stops": {
     "6306918419691815906-2611242305-7": {
@@ -279,6 +279,19 @@
         "pp": "14",
         "l": "RE1",
         "ppth": "Treuchtlingen|Roth"
+      }
+    },
+    "6306918419691815906-2611272300-11": {
+      "tl": {
+        "c": "RE",
+        "n": "4046",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611280106",
+        "pp": "5",
+        "l": "RE1",
+        "ppth": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Roth"
       }
     }
   }
