@@ -702,5 +702,16 @@
     "after": "",
     "plannedTime": "2026-11-27T22:40:00.000Z",
     "loggedDelay": 1
+  },
+  "6306918419691815906-2611272300-102": {
+    "status": "zusätzlich",
+    "clt": "",
+    "delay": 40,
+    "messages": "d55;f2000",
+    "terminus": "",
+    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf",
+    "after": "Weißenburg(Bay)|Georgensgmünd|Roth|Nürnberg Hbf",
+    "plannedTime": "2026-11-27T23:27:00.000Z",
+    "loggedDelay": 40
   }
 }

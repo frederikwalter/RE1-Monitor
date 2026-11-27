@@ -170,7 +170,7 @@
     "delay": 25,
     "messages": "d31;d55;d68;f2000;q91",
     "terminus": "",
-    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Georgensgmünd|Roth",
+    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Treuchtlingen|Weißenburg(Bay)|Georgensgmünd|Roth",
     "after": "",
     "plannedTime": "2026-11-28T00:06:00.000Z",
     "loggedDelay": 25

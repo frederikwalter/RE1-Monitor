@@ -932,6 +932,28 @@
         "l": "RE1",
         "ppth": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|Petershausen(Obb)|Dachau Bahnhof|München Hbf"
       }
+    },
+    "6306918419691815906-2611272300-102": {
+      "tl": {
+        "c": "RE",
+        "n": "4046",
+        "t": "p"
+      },
+      "ar": {
+        "pt": "2611280027",
+        "pp": "1",
+        "l": "RE1",
+        "ppth": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf",
+        "ps": "a"
+      },
+      "dp": {
+        "pt": "2611280027",
+        "pp": "1",
+        "l": "RE1",
+        "ppth": "Roth|Nürnberg Hbf",
+        "ps": "a"
+      },
+      "added": true
     }
   }
 }

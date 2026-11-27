@@ -1,15 +1,4 @@
 {
-  "6306918419691815906-2611242305-6": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 11,
-    "messages": "d43",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-24T23:49:00.000Z",
-    "loggedDelay": 10
-  },
   "6106442635410950120-2611250507-2": {
     "status": "planmäßig",
     "clt": "",
@@ -170,7 +159,7 @@
     "delay": 25,
     "messages": "d31;d55;d68;f2000;q91",
     "terminus": "",
-    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Georgensgmünd",
+    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Treuchtlingen|Weißenburg(Bay)|Georgensgmünd",
     "after": "Nürnberg Hbf",
     "plannedTime": "2026-11-27T23:50:00.000Z",
     "loggedDelay": 25

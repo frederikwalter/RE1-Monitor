@@ -86,25 +86,6 @@
     "26112818": true
   },
   "stops": {
-    "6306918419691815906-2611242305-6": {
-      "tl": {
-        "c": "RE",
-        "n": "4046",
-        "t": "p"
-      },
-      "ar": {
-        "pt": "2611250049",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf"
-      },
-      "dp": {
-        "pt": "2611250049",
-        "pp": "2",
-        "l": "RE1",
-        "ppth": "Nürnberg Hbf"
-      }
-    },
     "6106442635410950120-2611250507-2": {
       "tl": {
         "c": "RE",
