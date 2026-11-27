@@ -167,13 +167,13 @@
   "6306918419691815906-2611272300-11": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 14,
-    "messages": "d31;d68;q91",
+    "delay": 25,
+    "messages": "d31;d55;d68;f2000;q91",
     "terminus": "",
-    "before": "",
+    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Georgensgmünd|Roth",
     "after": "",
     "plannedTime": "2026-11-28T00:06:00.000Z",
-    "loggedDelay": 14
+    "loggedDelay": 25
   },
   "-3901580007931980802-2611280500-8": {
     "status": "gestrichen",
@@ -286,10 +286,10 @@
     "loggedDelay": 0
   },
   "-2075067507051466625-2611281107-1": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611272358",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -297,10 +297,10 @@
     "loggedDelay": 0
   },
   "-7099324935909193154-2611280903-7": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611272357",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -352,13 +352,13 @@
     "loggedDelay": 0
   },
   "-561932708992758554-2611281107-1": {
-    "status": "gestrichen",
-    "clt": "2611271532",
+    "status": "planmäßig",
+    "clt": "",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
     "before": "",
-    "after": "",
+    "after": "Roth|Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-28T10:07:00.000Z",
     "loggedDelay": 0
   },
@@ -495,10 +495,10 @@
     "loggedDelay": 0
   },
   "-8253571500114866383-2611281608-1": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611272030",
     "delay": 0,
-    "messages": "",
+    "messages": "d37",
     "terminus": "",
     "before": "",
     "after": "",
@@ -525,6 +525,39 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-28T16:07:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2734995039975038553-2611281704-7": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T17:55:00.000Z",
+    "loggedDelay": 0
+  },
+  "-6208140427880646318-2611281808-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T17:08:00.000Z",
+    "loggedDelay": 0
+  },
+  "7305673012904965123-2611282008-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "d37",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T19:08:00.000Z",
     "loggedDelay": 0
   }
 }

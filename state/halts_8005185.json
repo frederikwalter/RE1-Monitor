@@ -167,13 +167,13 @@
   "6306918419691815906-2611272300-10": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 15,
-    "messages": "d31;d68;q91",
+    "delay": 25,
+    "messages": "d31;d55;d68;f2000;q91",
     "terminus": "",
-    "before": "",
-    "after": "",
+    "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Georgensgmünd",
+    "after": "Nürnberg Hbf",
     "plannedTime": "2026-11-27T23:50:00.000Z",
-    "loggedDelay": 15
+    "loggedDelay": 25
   },
   "-3901580007931980802-2611280500-7": {
     "status": "gestrichen",
@@ -231,10 +231,10 @@
     "loggedDelay": 0
   },
   "-2075067507051466625-2611281107-2": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611272358",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -242,10 +242,10 @@
     "loggedDelay": 0
   },
   "-7099324935909193154-2611280903-6": {
-    "status": "planmäßig",
-    "clt": "",
+    "status": "gestrichen",
+    "clt": "2611272357",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
     "before": "",
     "after": "",
@@ -264,13 +264,13 @@
     "loggedDelay": 0
   },
   "-561932708992758554-2611281107-2": {
-    "status": "gestrichen",
-    "clt": "2611271532",
+    "status": "planmäßig",
+    "clt": "",
     "delay": 0,
-    "messages": "d37",
+    "messages": "d37;f2000",
     "terminus": "",
-    "before": "",
-    "after": "",
+    "before": "Nürnberg Hbf",
+    "after": "Ingolstadt Hbf|Rohrbach(Ilm)|Pfaffenhofen(Ilm)|München Hbf",
     "plannedTime": "2026-11-28T10:22:00.000Z",
     "loggedDelay": 0
   },
@@ -338,6 +338,17 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-28T16:22:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2734995039975038553-2611281704-6": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T17:39:00.000Z",
     "loggedDelay": 0
   }
 }
