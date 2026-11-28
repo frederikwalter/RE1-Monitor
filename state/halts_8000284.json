@@ -1,15 +1,4 @@
 {
-  "6306918419691815906-2611242305-7": {
-    "status": "planmäßig",
-    "clt": "",
-    "delay": 10,
-    "messages": "d43",
-    "terminus": "",
-    "before": "",
-    "after": "",
-    "plannedTime": "2026-11-25T00:05:00.000Z",
-    "loggedDelay": 9
-  },
   "6106442635410950120-2611250507-1": {
     "status": "planmäßig",
     "clt": "",
@@ -167,13 +156,13 @@
   "6306918419691815906-2611272300-11": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 25,
+    "delay": 37,
     "messages": "d31;d55;d68;f2000;q91",
     "terminus": "",
     "before": "München Hbf|Dachau Bahnhof|Petershausen(Obb)|Paindorf|Reichertshausen(Ilm)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Baar-Ebenhausen|Ingolstadt Hbf|Treuchtlingen|Weißenburg(Bay)|Georgensgmünd|Roth",
     "after": "",
     "plannedTime": "2026-11-28T00:06:00.000Z",
-    "loggedDelay": 25
+    "loggedDelay": 37
   },
   "-3901580007931980802-2611280500-8": {
     "status": "gestrichen",
@@ -245,7 +234,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "f2000",
+    "messages": "f2000;q82",
     "terminus": "",
     "before": "",
     "after": "",
@@ -558,6 +547,28 @@
     "before": "",
     "after": "",
     "plannedTime": "2026-11-28T19:08:00.000Z",
+    "loggedDelay": 0
+  },
+  "-3282248456543454646-2611281758-3": {
+    "status": "gestrichen",
+    "clt": "2611272130",
+    "delay": 0,
+    "messages": "d37",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T18:49:00.000Z",
+    "loggedDelay": 0
+  },
+  "-2293696810884829255-2611281908-1": {
+    "status": "planmäßig",
+    "clt": "",
+    "delay": 0,
+    "messages": "",
+    "terminus": "",
+    "before": "",
+    "after": "",
+    "plannedTime": "2026-11-28T18:08:00.000Z",
     "loggedDelay": 0
   }
 }
