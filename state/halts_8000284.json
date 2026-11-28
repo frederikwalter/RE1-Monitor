@@ -189,7 +189,7 @@
   "-1057426437887266667-2611280704-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 17,
+    "delay": 16,
     "messages": "d43",
     "terminus": "",
     "before": "",
@@ -288,8 +288,8 @@
   "7941894357234867037-2611280903-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 11,
-    "messages": "d37;f2000",
+    "delay": 12,
+    "messages": "d37;d43;f2000",
     "terminus": "",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf|Roth",
     "after": "",
@@ -300,7 +300,7 @@
     "status": "planmäßig",
     "clt": "",
     "delay": 0,
-    "messages": "",
+    "messages": "f0",
     "terminus": "",
     "before": "",
     "after": "",

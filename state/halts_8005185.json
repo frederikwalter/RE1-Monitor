@@ -233,8 +233,8 @@
   "7941894357234867037-2611280903-6": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 11,
-    "messages": "d37;f2000",
+    "delay": 13,
+    "messages": "d37;d43;f2000",
     "terminus": "",
     "before": "München Hbf|Petershausen(Obb)|Pfaffenhofen(Ilm)|Rohrbach(Ilm)|Ingolstadt Hbf",
     "after": "Nürnberg Hbf",
