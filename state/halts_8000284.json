@@ -189,13 +189,13 @@
   "-1057426437887266667-2611280704-7": {
     "status": "planmäßig",
     "clt": "",
-    "delay": 15,
+    "delay": 17,
     "messages": "d43",
     "terminus": "",
     "before": "",
     "after": "",
     "plannedTime": "2026-11-28T07:55:00.000Z",
-    "loggedDelay": 12
+    "loggedDelay": 17
   },
   "2180632807117550704-2611280808-1": {
     "status": "gestrichen",
